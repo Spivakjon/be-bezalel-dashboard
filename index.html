@@ -1242,6 +1242,8 @@
       <input type="hidden" name="_template" value="table">
       <input type="hidden" name="_autoresponse" value="היי, קיבלנו את התשובות שלך לשאלון בצלאל. תודה רבה! נחזור אליך תוך יומיים עם המשך.">
       <input type="text" name="_honey" style="display:none">
+      <!-- Hidden field — aggregates all answers as one copy-paste-friendly block -->
+      <textarea name="0_העתק_את_הבלוק_הזה" id="answers-summary" style="display:none"></textarea>
 
       <!-- Identity -->
       <div class="form-meta">
@@ -1599,6 +1601,43 @@
     });
 
     form.addEventListener('submit', () => {
+      // Build a clean copy-paste-friendly summary into the hidden field
+      const summaryEl = document.getElementById('answers-summary');
+      if (summaryEl) {
+        const now = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
+        let s = `=== שאלון בצלאל — תשובות אלי (${now}) ===\n\n`;
+
+        const meta = form.querySelectorAll('.form-meta .form-question');
+        meta.forEach(q => {
+          const lbl = q.querySelector('label');
+          const inp = q.querySelector('input, textarea');
+          if (!lbl || !inp) return;
+          const label = lbl.textContent.replace(/\s+\*$/, '').trim();
+          s += `${label}: ${inp.value.trim() || '—'}\n`;
+        });
+        s += '\n';
+
+        const cards = form.querySelectorAll('.grid.g-2 > .card');
+        cards.forEach(card => {
+          const h2 = card.querySelector('h2');
+          if (h2) s += `\n--- ${h2.textContent.trim()} ---\n`;
+          card.querySelectorAll('.form-question').forEach(q => {
+            const lbl = q.querySelector('label');
+            const ta = q.querySelector('textarea');
+            if (!lbl || !ta) return;
+            const label = lbl.textContent.trim();
+            const ans = ta.value.trim() || '(לא ענה)';
+            s += `\n${label}\n→ ${ans}\n`;
+          });
+        });
+
+        const comments = form.querySelector('#qcomments');
+        if (comments) s += `\n--- הערות כלליות ---\n${comments.value.trim() || '(אין)'}\n`;
+
+        s += '\n=== סוף ===\n';
+        summaryEl.value = s;
+      }
+
       // Clear local copies on successful submit (after redirect)
       setTimeout(() => {
         fields.forEach(f => {
