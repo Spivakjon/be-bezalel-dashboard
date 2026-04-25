@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BE Bezalel · דשבורד אסטרטגי v2 — נתוני אמת</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&family=Frank+Ruhl+Libre:wght@500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --panel: #14181f;
+    --panel-2: #1b212c;
+    --border: #262d3a;
+    --text: #e8ebf0;
+    --muted: #8893a7;
+    --accent: #f5c542;
+    --accent-2: #ff7a59;
+    --good: #34d399;
+    --warn: #fbbf24;
+    --bad: #f87171;
+    --info: #60a5fa;
+    --gap: #c084fc;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Heebo', sans-serif; font-size: 14px; line-height: 1.55;
+    -webkit-font-smoothing: antialiased; min-height: 100vh;
+  }
+  body {
+    background:
+      radial-gradient(ellipse 80% 50% at 80% -20%, rgba(245,197,66,0.08), transparent),
+      radial-gradient(ellipse 60% 50% at 0% 0%, rgba(96,165,250,0.06), transparent),
+      var(--bg);
+  }
+  .container { max-width: 1480px; margin: 0 auto; padding: 28px 32px 80px; }
+
+  header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    border-bottom: 1px solid var(--border); padding-bottom: 22px; margin-bottom: 20px;
+  }
+  .brand { display: flex; align-items: center; gap: 16px; }
+  .brand-mark {
+    width: 48px; height: 48px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Frank Ruhl Libre', serif; font-weight: 900; color: #11151c; font-size: 22px;
+    box-shadow: 0 6px 24px rgba(245,197,66,0.25);
+  }
+  h1 { font-family: 'Frank Ruhl Libre', serif; font-size: 28px; font-weight: 900; letter-spacing: -0.5px; }
+  .subtitle { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .meta { text-align: left; color: var(--muted); font-size: 12px; }
+  .meta strong { color: var(--text); }
+  .v2-tag {
+    display: inline-block; background: var(--good); color: #0b0d12;
+    padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;
+    margin-right: 8px;
+  }
+
+  .scope-banner {
+    background: var(--panel-2); border: 1px solid var(--border); border-right: 3px solid var(--accent);
+    border-radius: 10px; padding: 12px 16px; margin-bottom: 14px;
+    display: flex; gap: 14px; align-items: flex-start;
+  }
+  .scope-banner .icon { font-size: 18px; line-height: 1; padding-top: 2px; }
+  .scope-banner .body { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .scope-banner strong { color: var(--text); }
+
+  .source-legend {
+    display: flex; gap: 14px; flex-wrap: wrap; padding: 10px 16px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    margin-bottom: 24px; font-size: 11px;
+  }
+  .src {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 10px;
+    border: 1px solid;
+  }
+  .src-verified { background: rgba(52,211,153,0.12); color: var(--good); border-color: rgba(52,211,153,0.4); }
+  .src-partial { background: rgba(251,191,36,0.12); color: var(--warn); border-color: rgba(251,191,36,0.4); }
+  .src-missing { background: rgba(248,113,113,0.12); color: var(--bad); border-color: rgba(248,113,113,0.4); }
+  .src-internal { background: rgba(96,165,250,0.12); color: var(--info); border-color: rgba(96,165,250,0.4); }
+
+  .kpis {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; margin-bottom: 24px;
+  }
+  .kpi {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 18px; position: relative; overflow: hidden;
+  }
+  .kpi::before { content: ""; position: absolute; top: 0; right: 0; width: 3px; height: 100%; background: var(--accent); }
+  .kpi.good::before { background: var(--good); }
+  .kpi.warn::before { background: var(--warn); }
+  .kpi.bad::before { background: var(--bad); }
+  .kpi.info::before { background: var(--info); }
+  .kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .kpi-value { font-size: 28px; font-weight: 800; margin: 6px 0 2px; font-family: 'Frank Ruhl Libre', serif; }
+  .kpi-sub { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .kpi-source { font-size: 9px; }
+
+  nav.tabs {
+    display: flex; gap: 4px; margin-bottom: 24px; flex-wrap: wrap;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; padding: 6px;
+  }
+  nav.tabs button {
+    background: transparent; border: 0; color: var(--muted);
+    padding: 9px 14px; font-family: inherit; font-size: 12px; font-weight: 500;
+    border-radius: 8px; cursor: pointer; white-space: nowrap; transition: all .18s;
+  }
+  nav.tabs button:hover { color: var(--text); }
+  nav.tabs button.active {
+    background: var(--panel-2); color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+
+  section.tab-panel { display: none; animation: fade .22s ease; }
+  section.tab-panel.active { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  .grid { display: grid; gap: 18px; }
+  .g-2 { grid-template-columns: 1fr 1fr; }
+  .g-3 { grid-template-columns: repeat(3, 1fr); }
+  .g-4 { grid-template-columns: repeat(4, 1fr); }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 14px; padding: 22px;
+  }
+  .card h2 {
+    font-family: 'Frank Ruhl Libre', serif; font-size: 18px; font-weight: 700; margin-bottom: 4px;
+  }
+  .card .card-sub { color: var(--muted); font-size: 12px; margin-bottom: 16px; }
+  .card .source-line {
+    margin-top: 10px; font-size: 10px; color: var(--muted); border-top: 1px dashed var(--border);
+    padding-top: 8px;
+  }
+  .card .source-line a { color: var(--info); text-decoration: none; }
+  .card .source-line a:hover { text-decoration: underline; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: right; padding: 9px 11px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; background: var(--panel-2); position: sticky; top: 0; }
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+  td.num { font-variant-numeric: tabular-nums; font-weight: 600; }
+  td.pos { color: var(--good); }
+  td.neg { color: var(--bad); }
+
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 999px;
+    font-size: 10px; font-weight: 600; border: 1px solid transparent;
+  }
+  .badge.good { background: rgba(52,211,153,0.12); color: var(--good); border-color: rgba(52,211,153,0.3); }
+  .badge.warn { background: rgba(251,191,36,0.12); color: var(--warn); border-color: rgba(251,191,36,0.3); }
+  .badge.bad { background: rgba(248,113,113,0.12); color: var(--bad); border-color: rgba(248,113,113,0.3); }
+  .badge.info { background: rgba(96,165,250,0.12); color: var(--info); border-color: rgba(96,165,250,0.3); }
+  .badge.gap { background: rgba(192,132,252,0.12); color: var(--gap); border-color: rgba(192,132,252,0.3); }
+  .badge.muted { background: var(--panel-2); color: var(--muted); border-color: var(--border); }
+
+  .chart-box { position: relative; height: 320px; }
+  .chart-box.tall { height: 420px; }
+
+  ul.tight { list-style: none; padding: 0; }
+  ul.tight li {
+    padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  }
+  ul.tight li:last-child { border-bottom: 0; }
+  ul.tight li .lead { color: var(--text); }
+
+  .opp-card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px; position: relative;
+    border-right: 4px solid var(--good);
+  }
+  .opp-card.warn { border-right-color: var(--warn); }
+  .opp-card.bad { border-right-color: var(--bad); }
+  .opp-card .rank {
+    position: absolute; top: 14px; left: 14px;
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Frank Ruhl Libre', serif; font-weight: 900; font-size: 16px;
+    background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+  }
+  .opp-card h3 {
+    font-family: 'Frank Ruhl Libre', serif; font-size: 16px; font-weight: 700;
+    margin-bottom: 6px; padding-left: 44px;
+  }
+  .opp-card p { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+  .evidence-row {
+    margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border);
+    font-size: 11px; color: var(--muted);
+  }
+  .evidence-row strong { color: var(--good); }
+  .opp-card.bad .evidence-row strong { color: var(--bad); }
+  .opp-card.warn .evidence-row strong { color: var(--warn); }
+
+  .section-title { font-family: 'Frank Ruhl Libre', serif; font-size: 22px; font-weight: 800; margin: 0 0 6px; }
+  .section-sub { color: var(--muted); font-size: 13px; margin-bottom: 22px; max-width: 820px; }
+
+  .matrix-wrapper { overflow-x: auto; }
+  table.matrix { font-size: 12px; min-width: 1100px; }
+  table.matrix th, table.matrix td { padding: 8px 6px; text-align: center; border: 1px solid var(--border); }
+  table.matrix th:first-child, table.matrix td:first-child { text-align: right; padding-right: 12px; font-weight: 600; min-width: 180px; }
+  .cell { display: inline-flex; min-width: 30px; height: 24px; align-items: center; justify-content: center; border-radius: 6px; font-weight: 700; }
+  .c-strong { background: rgba(52,211,153,0.25); color: var(--good); }
+  .c-mid { background: rgba(96,165,250,0.18); color: var(--info); }
+  .c-weak { background: rgba(251,191,36,0.15); color: var(--warn); }
+  .c-empty { background: rgba(248,113,113,0.15); color: var(--bad); font-weight: 800; }
+  .c-na { color: var(--muted); }
+
+  .program {
+    display: grid; grid-template-columns: 1fr auto; gap: 14px;
+    padding: 12px 14px; background: var(--panel-2); border-radius: 10px;
+    border-right: 3px solid var(--accent); margin-bottom: 8px;
+  }
+  .program.full { border-right-color: var(--bad); }
+  .program.last { border-right-color: var(--warn); }
+  .program .name { font-weight: 600; font-size: 13px; }
+  .program .meta-row { color: var(--muted); font-size: 11px; margin-top: 3px; line-height: 1.5; }
+  .program a { color: var(--info); text-decoration: none; font-size: 10px; }
+  .program a:hover { text-decoration: underline; }
+
+  .action-bar {
+    margin-top: 32px; padding: 22px 26px;
+    background: linear-gradient(135deg, rgba(245,197,66,0.08), rgba(255,122,89,0.06));
+    border: 1px solid rgba(245,197,66,0.3); border-radius: 14px;
+    display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;
+  }
+  .action-bar h2 { font-family: 'Frank Ruhl Libre', serif; font-size: 20px; margin-bottom: 4px; }
+  .action-bar p { color: var(--muted); font-size: 13px; max-width: 720px; }
+
+  .gap-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 10px 14px; background: var(--panel-2); border-radius: 8px;
+    border-right: 3px solid var(--bad); margin-bottom: 6px;
+  }
+  .gap-row .gap-label { flex: 1; font-size: 13px; }
+  .gap-row .gap-action { color: var(--muted); font-size: 11px; }
+
+  /* Form elements */
+  .form-question { margin-bottom: 14px; }
+  .form-question label {
+    display: block; font-size: 13px; color: var(--text);
+    margin-bottom: 6px; line-height: 1.5;
+  }
+  .form-question label .qnum {
+    color: var(--accent); font-weight: 700; margin-left: 6px;
+  }
+  .form-input, .form-textarea {
+    width: 100%; background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-family: inherit; font-size: 13px;
+    padding: 9px 12px; transition: border-color .15s;
+    direction: rtl;
+  }
+  .form-input:focus, .form-textarea:focus {
+    outline: none; border-color: var(--accent);
+  }
+  .form-textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
+  .form-input::placeholder, .form-textarea::placeholder { color: var(--muted); }
+
+  .form-meta {
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px; margin-bottom: 20px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  }
+  .form-submit-bar {
+    margin-top: 26px; padding: 22px;
+    background: linear-gradient(135deg, rgba(52,211,153,0.1), rgba(96,165,250,0.06));
+    border: 1px solid rgba(52,211,153,0.4); border-radius: 14px;
+    display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;
+  }
+  .btn-submit {
+    background: var(--good); color: #0b0d12; border: 0;
+    padding: 14px 30px; border-radius: 10px;
+    font-family: inherit; font-weight: 700; font-size: 15px;
+    cursor: pointer; transition: opacity .15s, transform .15s;
+  }
+  .btn-submit:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-submit:active { transform: translateY(0); }
+
+  @media (max-width: 720px) { .form-meta { grid-template-columns: 1fr; } }
+
+  @media (max-width: 1100px) {
+    .kpis { grid-template-columns: repeat(3, 1fr); }
+    .g-3, .g-4 { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 720px) {
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .g-2, .g-3, .g-4 { grid-template-columns: 1fr; }
+    header { flex-direction: column; align-items: flex-start; gap: 14px; }
+    .meta { text-align: right; }
+  }
+
+  /* Password gate */
+  #pw-gate {
+    position: fixed; inset: 0; z-index: 9999;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 30%, rgba(245,197,66,0.12), transparent),
+      var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Heebo', sans-serif;
+  }
+  #pw-gate .pw-card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 16px; padding: 36px 36px 30px; width: min(420px, 92vw);
+    box-shadow: 0 18px 60px rgba(0,0,0,0.5);
+    text-align: center;
+  }
+  #pw-gate .pw-mark {
+    width: 56px; height: 56px; border-radius: 12px; margin: 0 auto 16px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Frank Ruhl Libre', serif; font-weight: 900; color: #11151c; font-size: 24px;
+  }
+  #pw-gate h2 { font-family: 'Frank Ruhl Libre', serif; font-size: 22px; margin-bottom: 4px; }
+  #pw-gate p { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
+  #pw-gate input {
+    width: 100%; background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text); font-family: inherit; font-size: 18px;
+    padding: 12px 14px; text-align: center; letter-spacing: 6px; margin-bottom: 12px;
+    direction: ltr;
+  }
+  #pw-gate input:focus { outline: none; border-color: var(--accent); }
+  #pw-gate button {
+    width: 100%; background: var(--accent); border: 0; border-radius: 10px;
+    color: #11151c; font-family: inherit; font-weight: 700; font-size: 14px;
+    padding: 12px; cursor: pointer; transition: opacity .15s;
+  }
+  #pw-gate button:hover { opacity: 0.9; }
+  #pw-gate .pw-err { color: var(--bad); font-size: 12px; min-height: 18px; margin-top: 8px; }
+  body.locked { overflow: hidden; }
+  body.locked .container { filter: blur(8px); pointer-events: none; user-select: none; }
+</style>
+</head>
+<body class="locked">
+
+<div id="pw-gate">
+  <div class="pw-card">
+    <div class="pw-mark">בצ</div>
+    <h2>גישה מוגבלת</h2>
+    <p>הזן/י סיסמה לצפייה בדשבורד</p>
+    <input id="pw-input" type="password" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="••••••" autofocus>
+    <button id="pw-submit">כניסה</button>
+    <div class="pw-err" id="pw-err"></div>
+  </div>
+</div>
+
+<div class="container">
+
+  <header>
+    <div class="brand">
+      <div class="brand-mark">בצ</div>
+      <div>
+        <h1><span class="v2-tag">v2 · נתוני אמת</span>BE Bezalel · דשבורד אסטרטגי</h1>
+        <div class="subtitle">מיפוי תחרותי, ביקוש שוק, ומנופי רווח · <span style="color:var(--accent);">לימודי חוץ בלבד</span></div>
+      </div>
+    </div>
+    <div class="meta">
+      <div>אימות אחרון: <strong>25.04.2026</strong></div>
+      <div>מקורות: <strong>be.bezalel.ac.il · LinkedIn IL · Similarweb · CBS · CHE · MoE</strong></div>
+    </div>
+  </header>
+
+  <div class="scope-banner">
+    <div class="icon">◎</div>
+    <div class="body">
+      <strong>היקף וגישת עבודה:</strong>
+      רק לימודי חוץ, תעודה, סדנאות וקורסי המשך. תארים אקדמיים אינם נכללים.
+      <strong style="color:var(--accent);">כל נתון בדשבורד מסומן עם מקור אמת ורמת אמינות</strong>. נתונים שלא ניתנו לאימות פומבי מסומנים מפורשות כ"חסר" — לא הומצאו.
+    </div>
+  </div>
+
+  <div class="source-legend">
+    <span style="color:var(--muted); font-weight:600;">מפתח אמינות:</span>
+    <span class="src src-verified">✓ מאומת — URL פומבי</span>
+    <span class="src src-partial">◐ חלקי — דורש אימות ידני</span>
+    <span class="src src-missing">✗ חסר — לא נגיש פומבי</span>
+    <span class="src src-internal">◉ ממתין לגישה פנימית בבצלאל</span>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpis">
+    <div class="kpi">
+      <div class="kpi-label">קורסים פעילים בקטלוג</div>
+      <div class="kpi-value">43</div>
+      <div class="kpi-sub">כולל מכינה, תעודה, אמנות, עיצוב, AI</div>
+      <div class="kpi-source"><span class="src src-verified">✓ be.bezalel.ac.il</span></div>
+    </div>
+    <div class="kpi bad">
+      <div class="kpi-label">סטטוס "מלא"</div>
+      <div class="kpi-value">13 / 43</div>
+      <div class="kpi-sub">30% מהקטלוג — סיגנל ביקוש חזק</div>
+      <div class="kpi-source"><span class="src src-verified">✓ be.bezalel.ac.il</span></div>
+    </div>
+    <div class="kpi good">
+      <div class="kpi-label">תנועה ל-be.bezalel.ac.il</div>
+      <div class="kpi-value">+21.6%</div>
+      <div class="kpi-sub">19.8K ביקורים בחודש · 100% IL</div>
+      <div class="kpi-source"><span class="src src-verified">✓ Similarweb · מרץ 26</span></div>
+    </div>
+    <div class="kpi info">
+      <div class="kpi-label">משרות AI פתוחות בישראל</div>
+      <div class="kpi-value">2,060</div>
+      <div class="kpi-sub">בכל הענפים · 76 ייעודיות לעיצוב</div>
+      <div class="kpi-source"><span class="src src-verified">✓ AllJobs · LinkedIn</span></div>
+    </div>
+    <div class="kpi warn">
+      <div class="kpi-label">לימודי חוץ אצל שנקר</div>
+      <div class="kpi-value">1,200+</div>
+      <div class="kpi-sub">סטודנטים · בצלאל לא מפורסם</div>
+      <div class="kpi-source"><span class="src src-verified">✓ Shenkar / WP</span></div>
+    </div>
+    <div class="kpi bad">
+      <div class="kpi-label">משרות מעצב/ת אופנה</div>
+      <div class="kpi-value">5</div>
+      <div class="kpi-sub">בישראל. שוק קרוס — לא להיכנס</div>
+      <div class="kpi-source"><span class="src src-verified">✓ LinkedIn IL</span></div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="overview">סקירה</button>
+    <button class="tab-btn" data-tab="bezalel">קטלוג בצלאל מאומת</button>
+    <button class="tab-btn" data-tab="demand">ביקוש שוק העבודה</button>
+    <button class="tab-btn" data-tab="traffic">תנועה ומתחרים</button>
+    <button class="tab-btn" data-tab="macro">נתוני מקרו</button>
+    <button class="tab-btn" data-tab="matrix">מטריצת תחומים</button>
+    <button class="tab-btn" data-tab="opportunities">מנופי רווח</button>
+    <button class="tab-btn" data-tab="threats">איומים</button>
+    <button class="tab-btn" data-tab="sources">מקורות וחסרים</button>
+    <button class="tab-btn" data-tab="manual">איסוף ידני</button>
+    <button class="tab-btn" data-tab="ops" style="color: var(--accent); font-weight: 700;">ניהול עתידי ←</button>
+  </nav>
+
+  <!-- ============ OVERVIEW ============ -->
+  <section class="tab-panel active" id="overview">
+    <h2 class="section-title">תמונת מצב — נתונים מאומתים בלבד</h2>
+    <p class="section-sub">המסקנות העיקריות מאיסוף הנתונים ב-25.04.2026: בצלאל כבר במגמת צמיחה דיגיטלית, יש סיגנלי ביקוש חזקים, ושני תחומים בולטים שמצדיקים השקעה (AI ו-Product Design) לעומת תחום אחד שצריך להיזהר ממנו (אופנה).</p>
+
+    <div class="grid g-2">
+      <div class="card">
+        <h2>שלוש מסקנות מרכזיות</h2>
+        <div class="card-sub">סינתזה של ארבעת מקורות הנתונים</div>
+        <ul class="tight">
+          <li>
+            <span class="lead">
+              <strong style="color:var(--good);">①</strong>
+              be.bezalel.ac.il צומח 21.6% MoM — הבסיס הדיגיטלי כבר עובד. צריך להזין אותו במוצרים שמתאימים לביקוש.
+            </span>
+            <span class="badge good">סיגנל חיובי</span>
+          </li>
+          <li>
+            <span class="lead">
+              <strong style="color:var(--info);">②</strong>
+              AI = הזדמנות מס' 1. HackerU צומחת +26.5% עם "קורס AI" כמילת המפתח האורגנית #1. 2,060 משרות AI בשוק.
+            </span>
+            <span class="badge info">פעולה</span>
+          </li>
+          <li>
+            <span class="lead">
+              <strong style="color:var(--bad);">③</strong>
+              אופנה = סיכון. רק 5 משרות פתוחות בארץ, שנקר בנפילה -49% תנועה. לא להיכנס.
+            </span>
+            <span class="badge bad">אזהרה</span>
+          </li>
+        </ul>
+        <div class="source-line">
+          מקורות: <a href="https://www.similarweb.com/website/be.bezalel.ac.il/" target="_blank">Similarweb</a> · <a href="https://il.linkedin.com/jobs/ai-designer-jobs" target="_blank">LinkedIn IL</a> · <a href="https://www.alljobs.co.il" target="_blank">AllJobs</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>תנועה לאתרי המתחרים — מרץ 2026</h2>
+        <div class="card-sub">ביקורים חודשיים. בצלאל לימודי חוץ במגמת צמיחה. שנקר בנפילה.</div>
+        <div class="chart-box"><canvas id="trafficChart"></canvas></div>
+        <div class="source-line">מקור: <a href="https://www.similarweb.com" target="_blank">Similarweb</a> · גרסה חינמית · 25.04.2026</div>
+      </div>
+    </div>
+
+    <div class="grid g-2" style="margin-top: 18px;">
+      <div class="card">
+        <h2>ביקוש שוק עבודה — לפי תחום (LinkedIn IL)</h2>
+        <div class="card-sub">מספר משרות פתוחות באפריל 2026. Product Design מוביל; Fashion קרס.</div>
+        <div class="chart-box"><canvas id="jobsChart"></canvas></div>
+        <div class="source-line">מקור: <a href="https://il.linkedin.com/jobs" target="_blank">LinkedIn Israel</a> · אומת 25.04.2026</div>
+      </div>
+
+      <div class="card">
+        <h2>פערי הצעה מובהקים אצל בצלאל</h2>
+        <div class="card-sub">תחומים בהם מתחרים פעילים אך ל-BE Bezalel אין מענה</div>
+        <div class="gap-row"><div class="gap-label">עיצוב גרפי / טיפוגרפיה / מותג</div><div class="gap-action">140 משרות LinkedIn</div></div>
+        <div class="gap-row"><div class="gap-label">Product Design (UX/UI מתקדם)</div><div class="gap-action">637 משרות LinkedIn</div></div>
+        <div class="gap-row"><div class="gap-label">צילום</div><div class="gap-action">בעיקר שוק חובבים</div></div>
+        <div class="gap-row"><div class="gap-label">תכניות נוער</div><div class="gap-action">HIT עם Sycamore</div></div>
+        <div class="gap-row"><div class="gap-label">B2B / Corporate</div><div class="gap-action">אף מתחרה לא מפרסם</div></div>
+        <div class="gap-row"><div class="gap-label">תכניות באנגלית</div><div class="gap-action">long-tail בינלאומי</div></div>
+        <div class="gap-row"><div class="gap-label">חשיפת מחירים באתר</div><div class="gap-action">לכל המתחרים אותה בעיה</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BEZALEL VERIFIED CATALOG ============ -->
+  <section class="tab-panel" id="bezalel">
+    <h2 class="section-title">קטלוג BE Bezalel — אימות מלא</h2>
+    <p class="section-sub">43 קורסים פעילים נכון לאפריל 2026, כל אחד עם URL מאומת, מיקום, מועד, וסטטוס מילוי. <strong style="color:var(--accent);">13 קורסים מסומנים "מלא"</strong> — סיגנל ביקוש חזק שיש לנצל.</p>
+
+    <div class="grid g-2">
+      <div class="card">
+        <h2>סטטוס מילוי לפי קטגוריה</h2>
+        <div class="card-sub">ביקוש מובהק בעיצוב, אמנות, AI</div>
+        <div class="chart-box"><canvas id="statusChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>קטלוג לפי קטגוריה</h2>
+        <div class="card-sub">חלוקה כמותית של 43 ההצעות</div>
+        <div class="chart-box"><canvas id="catalogChart"></canvas></div>
+      </div>
+    </div>
+
+    <h3 style="font-family:'Frank Ruhl Libre',serif; font-size:18px; margin: 26px 0 12px; color: var(--accent);">לימודי תעודה ומסלולים ארוכים (5)</h3>
+    <div class="grid g-2">
+      <div class="program full">
+        <div>
+          <div class="name">לימודי תעודה בעיצוב פנים</div>
+          <div class="meta-row">700 ש"א · 4 סמסטרים · בית הנסן י-ם + סטודיו אנקורי ת"א · פתיחה 26.10.25
+            <br><a href="https://be.bezalel.ac.il/interior-design/" target="_blank">↗ עמוד הקורס</a></div>
+        </div>
+        <span class="badge bad">מלא בשני המוקדים</span>
+      </div>
+      <div class="program">
+        <div>
+          <div class="name">לימודי תעודה בעיצוב קרמי</div>
+          <div class="meta-row">242 ש"א · 26 מפגשים · המרכז לאומנויות, אנילביץ' 21, באר שבע · פתיחה 6.10.26
+            <br><a href="https://be.bezalel.ac.il/ceramic-design/" target="_blank">↗ עמוד הקורס</a></div>
+        </div>
+        <span class="badge info">יפתח בקרוב</span>
+      </div>
+      <div class="program">
+        <div>
+          <div class="name">השלמת 200 שעות אמנות</div>
+          <div class="meta-row">200 ש"א · 19 מפגשים · בית הנסן ירושלים · פתיחה 1.6.26
+            <br><a href="https://be.bezalel.ac.il/השלמת-200-באומנות/" target="_blank">↗ עמוד הקורס</a></div>
+        </div>
+        <span class="badge good">פתוח להרשמה</span>
+      </div>
+      <div class="program">
+        <div>
+          <div class="name">השלמת 300 שעות אמנות</div>
+          <div class="meta-row">300 ש"א (3×100) · י-ם 7.9.26 / ת"א 9.10.26 / ב"ש 8.9.26
+            <br><a href="https://be.bezalel.ac.il/300hours/" target="_blank">↗ עמוד הקורס</a></div>
+        </div>
+        <span class="badge info">הרשמה מוקדמת עד 30.6.26</span>
+      </div>
+      <div class="program">
+        <div>
+          <div class="name">מכינת בצלאל לעיצוב ואדריכלות</div>
+          <div class="meta-row">17 מפגשים · בית הנסן + סטודיו אנקורי · י-ם 6.10.26 / ת"א 12.10.26
+            <br><a href="https://be.bezalel.ac.il/מכינה-לעיצוב/" target="_blank">↗ עמוד הקורס</a></div>
+        </div>
+        <span class="badge good">הנחה עד 30.6.26</span>
+      </div>
+    </div>
+
+    <h3 style="font-family:'Frank Ruhl Libre',serif; font-size:18px; margin: 26px 0 12px; color: var(--accent);">קורסי AI (6) — קטגוריה צומחת ומבוקשת</h3>
+    <div class="grid g-2">
+      <div class="program full">
+        <div><div class="name">עיצוב בעזרת AI</div>
+          <div class="meta-row">10 מפגשים · ימי א' 17:30-20:30 · Zoom · פתיחה 3.5.26
+            <br><a href="https://be.bezalel.ac.il/עיצוב-בעזרת-בינה-מלאכותית/" target="_blank">↗</a></div>
+        </div><span class="badge bad">מלא</span>
+      </div>
+      <div class="program full">
+        <div><div class="name">AI לאדריכליות ומעצבי פנים</div>
+          <div class="meta-row">7 מפגשים × 3 שעות · Zoom · פתיחה 3.6.26
+            <br><a href="https://be.bezalel.ac.il/עיצוב-בעזרת-בינה-מלאכותית-לאדריכליות/" target="_blank">↗</a></div>
+        </div><span class="badge bad">מלא</span>
+      </div>
+      <div class="program">
+        <div><div class="name">AI למעצבי פנים ומלבישות בתים</div>
+          <div class="meta-row">7 מפגשים · Zoom · פתיחה 7.7.26
+            <br><a href="https://be.bezalel.ac.il/קורס-בינה-מלאכותית-למעצבי-פנים-ומלביש/" target="_blank">↗</a></div>
+        </div><span class="badge good">פתוח</span>
+      </div>
+      <div class="program">
+        <div><div class="name">AI, אסטרטגיה וקריאייטיב לעולם הסושיאל</div>
+          <div class="meta-row">6 מפגשים · ימי ב' · Zoom · פתיחה 13.7.26
+            <br><a href="https://be.bezalel.ac.il/בינה-מלאכותית-אסטרטגיה-וקריאייטיב/" target="_blank">↗</a></div>
+        </div><span class="badge good">פתוח</span>
+      </div>
+      <div class="program full">
+        <div><div class="name">מחוללים סרטים — וידאו AI</div>
+          <div class="meta-row">8 מפגשים · Zoom · פתיחה 22.2.26
+            <br><a href="https://be.bezalel.ac.il/עיצוב-בעזרת-ai-לצלמים/" target="_blank">↗</a></div>
+        </div><span class="badge bad">מלא</span>
+      </div>
+      <div class="program">
+        <div><div class="name">עובדים חכם עם AI</div>
+          <div class="meta-row">חדש · Zoom · ללא מועד עדיין
+            <br><a href="https://be.bezalel.ac.il/שימוש-בבינה-מלאכותית/" target="_blank">↗</a></div>
+        </div><span class="badge info">בקרוב</span>
+      </div>
+    </div>
+
+    <h3 style="font-family:'Frank Ruhl Libre',serif; font-size:18px; margin: 26px 0 12px; color: var(--accent);">סיגנל ביקוש: 13 קורסים "מלא"</h3>
+    <div class="card">
+      <h2>הקורסים המלאים — מקור ביקוש מובהק</h2>
+      <div class="card-sub">סטטוס "מלא" באתר ב-25.04.2026 — אינדיקציה ישירה לתחום שיש להעמיק בו או לשכפל</div>
+      <ul class="tight">
+        <li><span class="lead">תעודה בעיצוב פנים — י-ם + ת"א</span><span class="badge bad">2 מסלולים מלאים</span></li>
+        <li><span class="lead">עיצוב בעזרת AI</span><span class="badge bad">מלא</span></li>
+        <li><span class="lead">AI לאדריכליות ומעצבי פנים</span><span class="badge bad">מלא</span></li>
+        <li><span class="lead">מחוללים סרטים (וידאו AI)</span><span class="badge bad">מלא</span></li>
+        <li><span class="lead">הום סטיילינג</span><span class="badge bad">מלא</span></li>
+        <li><span class="lead">ציור בצבעי שמן (ת"א)</span><span class="badge bad">מלא</span></li>
+        <li><span class="lead">ציור בצבעי שמן מתקדמים (ת"א)</span><span class="badge bad">מלא</span></li>
+        <li><span class="lead">אקריליק (ת"א + עמק חפר)</span><span class="badge bad">2 מקומות מלאים</span></li>
+        <li><span class="lead">צבע: גישות וטכניקות (י-ם)</span><span class="badge bad">מלא</span></li>
+        <li><span class="lead">ציור בדיו, צבעי מים וטמפרה (י-ם)</span><span class="badge bad">מלא</span></li>
+        <li><span class="lead">ציור בצבעי מים (י-ם)</span><span class="badge bad">מלא</span></li>
+        <li><span class="lead">יסודות הרישום (חיפה)</span><span class="badge bad">מלא</span></li>
+        <li><span class="lead">רישום למתקדמים (י-ם)</span><span class="badge bad">מלא</span></li>
+        <li><span class="lead">מרישום בפחם לפסטל (ת"א)</span><span class="badge bad">מלא</span></li>
+        <li><span class="lead">מיניאטורות (חיפה)</span><span class="badge bad">מלא</span></li>
+        <li><span class="lead">צבעי שמן: מסורתי לעכשווי (עמק חפר)</span><span class="badge bad">מלא</span></li>
+      </ul>
+      <div class="source-line">מקור: be.bezalel.ac.il · אומת 25.04.2026 · ראה <a href="#" onclick="document.querySelector('[data-tab=sources]').click()">לשונית מקורות</a> לרשימת URL מלאה</div>
+    </div>
+  </section>
+
+  <!-- ============ DEMAND ============ -->
+  <section class="tab-panel" id="demand">
+    <h2 class="section-title">ביקוש שוק העבודה הישראלי</h2>
+    <p class="section-sub">משרות פתוחות בפועל לפי תחום, נכון ל-25.04.2026. הנתונים האלה צריכים להוביל את החלטות התיק שלכם — לא לפתח קורסים בתחומים שאין בהם תעסוקה.</p>
+
+    <div class="card" style="margin-bottom: 18px;">
+      <h2>טבלת משרות פתוחות לפי תחום (LinkedIn IL · Alljobs)</h2>
+      <div class="card-sub">משרות פעילות באפריל 2026. שני מקורות מאומתים. ת"א-יפו דומיננטית בכל הקטגוריות.</div>
+      <table>
+        <thead>
+          <tr>
+            <th>תחום</th>
+            <th>LinkedIn IL</th>
+            <th>Alljobs (כותרת)</th>
+            <th>חברות מובילות</th>
+            <th>משמעות אסטרטגית</th>
+            <th>מקור</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Product Designer</strong></td><td class="num">637</td><td class="num">—</td><td>Cyera, Connecteam, Houzz, Rapyd</td><td><span class="badge good">תחום מס' 1 בנפח</span></td><td><span class="src src-verified">✓</span></td></tr>
+          <tr><td>Interior Designer</td><td class="num">324</td><td class="num">500</td><td>Recruitx, Tamooz, Jacobs</td><td><span class="badge good">בצלאל כבר חזקה</span></td><td><span class="src src-verified">✓</span></td></tr>
+          <tr><td>Illustrator</td><td class="num">219</td><td class="num">2</td><td>Pazu Games, Agilite, TriArts</td><td><span class="badge info">תעשיית גיימינג</span></td><td><span class="src src-verified">✓</span></td></tr>
+          <tr><td>Stylist</td><td class="num">199</td><td class="num">—</td><td>Wix, Agilite, Brandlight</td><td><span class="badge muted">מערב כל סוג Designer</span></td><td><span class="src src-partial">◐</span></td></tr>
+          <tr><td>Graphic Designer</td><td class="num">140</td><td class="num">21</td><td>Recruitx, Sivan-Group, Bringg</td><td><span class="badge warn">בצלאל חסרה</span></td><td><span class="src src-verified">✓</span></td></tr>
+          <tr><td><strong>AI Designer</strong></td><td class="num">62</td><td class="num">2,060</td><td>Cloudinary, Cyera, Brandlight</td><td><span class="badge good">הזדמנות מס' 1</span></td><td><span class="src src-verified">✓</span></td></tr>
+          <tr><td>Animator</td><td class="num">49</td><td class="num">3</td><td>Pazu (תוכן), Yuval HR</td><td><span class="badge info">בוגר</span></td><td><span class="src src-verified">✓</span></td></tr>
+          <tr><td>Motion Designer</td><td class="num">47</td><td class="num">80</td><td>Artlist, Fireblocks, DoorLoop</td><td><span class="badge info">תחום בוגר</span></td><td><span class="src src-verified">✓</span></td></tr>
+          <tr><td>UI/UX Designer</td><td class="num">22</td><td class="num">353</td><td>YO IT, Cyera, SeatPick</td><td><span class="badge muted">חופף ל-Product</span></td><td><span class="src src-verified">✓</span></td></tr>
+          <tr><td>Photographer</td><td class="num">17</td><td class="num">14*</td><td>Recruitx, Playtika</td><td><span class="badge warn">*12 צילום שיניים</span></td><td><span class="src src-verified">✓</span></td></tr>
+          <tr><td>Prompt Engineer</td><td class="num">14</td><td class="num">—</td><td>Aqurate Data, HyperFi</td><td><span class="badge good">תת-נישה צומחת</span></td><td><span class="src src-verified">✓</span></td></tr>
+          <tr><td>3D Animator</td><td class="num">11</td><td class="num">—</td><td>Club Med (water-ski!), TriArts</td><td><span class="badge muted">זיהום נתונים</span></td><td><span class="src src-verified">✓</span></td></tr>
+          <tr><td><strong>Fashion Designer</strong></td><td class="num neg">5</td><td class="num">—</td><td>Agilite, Tenengroup, Delta Galil</td><td><span class="badge bad">לא להיכנס</span></td><td><span class="src src-verified">✓</span></td></tr>
+        </tbody>
+      </table>
+      <div class="source-line">
+        מקורות: <a href="https://il.linkedin.com/jobs/product-designer-jobs" target="_blank">LinkedIn Product</a> ·
+        <a href="https://il.linkedin.com/jobs/interior-designer-jobs" target="_blank">Interior</a> ·
+        <a href="https://il.linkedin.com/jobs/ai-designer-jobs" target="_blank">AI Designer</a> ·
+        <a href="https://il.linkedin.com/jobs/fashion-designer-jobs" target="_blank">Fashion</a> ·
+        <a href="https://www.alljobs.co.il" target="_blank">AllJobs</a>
+      </div>
+    </div>
+
+    <div class="grid g-2">
+      <div class="card">
+        <h2>פיזור גאוגרפי — היכן המשרות</h2>
+        <div class="card-sub">ת"א-יפו מרכזית. הרצליה משלימה. ירושלים ובאר שבע מינוריים.</div>
+        <ul class="tight">
+          <li><span class="lead">Product Designer בת"א-יפו</span><span class="badge info">317 / 637 (50%)</span></li>
+          <li><span class="lead">Illustrator בת"א-יפו</span><span class="badge info">98 / 219 (45%)</span></li>
+          <li><span class="lead">AI Designer בת"א-יפו</span><span class="badge info">29 / 62 (47%)</span></li>
+          <li><span class="lead">Motion Designer בת"א-יפו</span><span class="badge info">21 / 47 (45%)</span></li>
+          <li><span class="lead">Graphic Designer — ת"א + הרצליה</span><span class="badge info">77 / 140 (55%)</span></li>
+        </ul>
+        <div class="source-line">משמעות: שיווק לקורסי תעודה מקצועית = יעד גיאוגרפי מובהק במרכז. ירושלים = יעד פנאי/אומנות.</div>
+      </div>
+      <div class="card">
+        <h2>Glassdoor — סיגנל מאשר</h2>
+        <div class="card-sub">מקור משלים, מאשר את LinkedIn</div>
+        <ul class="tight">
+          <li><span class="lead">UX Designer</span><span class="badge info">136 משרות</span></li>
+          <li><span class="lead">UI/UX Designer</span><span class="badge info">93 משרות</span></li>
+          <li><span class="lead">Motion Design</span><span class="badge warn">81 → 49 (ירידה Q1)</span></li>
+        </ul>
+        <div class="source-line">מקור: <a href="https://www.glassdoor.com" target="_blank">Glassdoor Israel</a> · אומת 25.04.2026</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 18px;">
+      <h2>גרף: ביקוש שוק × נוכחות בצלאל</h2>
+      <div class="card-sub">איפה יש משרות וגם איפה בצלאל פעילה / חסרה</div>
+      <div class="chart-box tall"><canvas id="demandVsBezalel"></canvas></div>
+    </div>
+  </section>
+
+  <!-- ============ TRAFFIC ============ -->
+  <section class="tab-panel" id="traffic">
+    <h2 class="section-title">תנועה לאתרי המתחרים — מרץ 2026</h2>
+    <p class="section-sub">נתונים מ-Similarweb (גרסה חינמית) על ביקורים חודשיים, מקור התנועה ומגמה. <strong style="color:var(--good);">בצלאל לימודי חוץ צומחת 21.6%</strong> — המגמה החיובית הבולטת ביותר. <strong style="color:var(--bad);">שנקר נופלת -49%</strong>. הזדמנות תזמון.</p>
+
+    <div class="card" style="margin-bottom: 18px;">
+      <h2>טבלת תנועה לפי אתר</h2>
+      <div class="card-sub">ביקורים חודשיים, שינוי MoM, ושיעור IL. כל פריט מאומת ב-Similarweb.</div>
+      <table>
+        <thead>
+          <tr>
+            <th>אתר</th>
+            <th>מוסד</th>
+            <th>ביקורים חודשיים</th>
+            <th>שינוי MoM</th>
+            <th>Bounce Rate</th>
+            <th>זמן ממוצע</th>
+            <th>מקור עיקרי</th>
+            <th>% IL</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>hit.ac.il</td><td>HIT</td><td class="num">278.7K</td><td class="num neg">-19.22%</td><td>19.0%</td><td>4:22</td><td>Direct 58%</td><td>97.7%</td></tr>
+          <tr><td>bezalel.ac.il</td><td>בצלאל ראשי</td><td class="num">77.2K</td><td class="num neg">-10.34%</td><td>36.3%</td><td>2:56</td><td>אורגני 56%</td><td>82.0%</td></tr>
+          <tr><td>hackeru.co.il</td><td>HackerU</td><td class="num">64.3K</td><td class="num pos">+26.52%</td><td>43.5%</td><td>0:43</td><td><strong>Paid 37%</strong></td><td>95.5%</td></tr>
+          <tr><td>shenkar.ac.il</td><td>שנקר</td><td class="num">58K</td><td class="num neg">-49.04%</td><td>29.0%</td><td>2:59</td><td>אורגני 49%</td><td>95.2%</td></tr>
+          <tr><td>johnbryce.co.il</td><td>John Bryce</td><td class="num">29.2K</td><td class="num neg">-11.52%</td><td>47.9%</td><td>1:02</td><td>אורגני 57%</td><td>98.9%</td></tr>
+          <tr style="background: rgba(52,211,153,0.08);"><td><strong>be.bezalel.ac.il</strong></td><td><strong>BE Bezalel</strong></td><td class="num">19.8K</td><td class="num pos">+21.58%</td><td>54.0%</td><td>3:16</td><td>אורגני 57%</td><td>100.0%</td></tr>
+          <tr><td>minshar.org.il</td><td>מנשר</td><td class="num">4.2K</td><td class="num neg">-17.83%</td><td>51.3%</td><td>1:21</td><td>אורגני 52%</td><td>100.0%</td></tr>
+          <tr><td>galitz.co.il</td><td>גליץ</td><td class="num">3.3K</td><td class="num pos">+7.74%</td><td>55.9%</td><td>1:58</td><td>אורגני 51%</td><td>100.0%</td></tr>
+          <tr><td>musrara.co.il</td><td>מוסררה</td><td class="num">2.2K</td><td class="num neg">-55.32%</td><td>29.8%</td><td>0:19</td><td>Direct 41%</td><td>100.0%</td></tr>
+          <tr><td colspan="8" style="color:var(--muted); font-size:11px;">wizodzn.ac.il / ext.shenkar.ac.il / ani-mator.com — לא נטענו (rate limit)</td></tr>
+        </tbody>
+      </table>
+      <div class="source-line">
+        מקור: <a href="https://www.similarweb.com/website/be.bezalel.ac.il/" target="_blank">Similarweb · be.bezalel</a> ·
+        <a href="https://www.similarweb.com/website/hackeru.co.il/" target="_blank">HackerU</a> ·
+        <a href="https://www.similarweb.com/website/shenkar.ac.il/" target="_blank">Shenkar</a>
+      </div>
+    </div>
+
+    <div class="grid g-2">
+      <div class="card">
+        <h2>תובנת תנועה #1 — בצלאל לימודי חוץ במגמה</h2>
+        <div class="card-sub">19.8K ביקורים בחודש, 100% מישראל, בעלייה של 21.6%</div>
+        <p style="font-size:13px; color:var(--muted); margin-top:8px;">המבקרים נשארים 3:16 דקות בממוצע — הזמן הארוך ביותר מבין כל המתחרים. זה מצביע על <strong style="color:var(--good);">קהל מעורב ומחפש</strong>. ההמרה מתעכבת רק במחסום הטלפוני (אין חשיפת מחיר). זה ה-low hanging fruit.</p>
+      </div>
+      <div class="card">
+        <h2>תובנת תנועה #2 — HackerU = איום דחוף</h2>
+        <div class="card-sub">היחיד שצומח דו-ספרתית עם 37% תנועה paid</div>
+        <p style="font-size:13px; color:var(--muted); margin-top:8px;">הם משקיעים בקמפיינים ממומנים בקנה מידה של עשרות אלפי שקלים בחודש. "קורס AI" היא מילת המפתח האורגנית #1 שלהם. <strong style="color:var(--bad);">בצלאל מאבדת לידים בכל קליק שלא מקבל מענה במחיר ובמהירות שלהם.</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MACRO ============ -->
+  <section class="tab-panel" id="macro">
+    <h2 class="section-title">נתוני מקרו — השכלה גבוהה בישראל</h2>
+    <p class="section-sub">נתונים רשמיים מהלמ"ס, מל"ג / ות"ת, ומסמכי הכנסת. הנתונים אלה מספקים הקשר אבל לא תחליף לנתונים פנימיים של בצלאל.</p>
+
+    <div class="grid g-2">
+      <div class="card">
+        <h2>מערכת ההשכלה הגבוהה — תשפ"ד</h2>
+        <div class="card-sub">סך הסטודנטים, צמיחה, מספר מוסדות</div>
+        <table>
+          <tbody>
+            <tr><td>סך סטודנטים בישראל</td><td class="num"><strong>346,300</strong></td></tr>
+            <tr><td>צמיחה שנתית</td><td class="num pos">+1.2%</td></tr>
+            <tr><td>מספר מוסדות</td><td class="num">57</td></tr>
+            <tr><td>מתוכם באו"פ (תואר ראשון)</td><td class="num">43,700</td></tr>
+          </tbody>
+        </table>
+        <div class="source-line">מקור: <a href="https://www.cbs.gov.il/he/mediarelease/DocLib/2024/349/06_24_349b.pdf" target="_blank">למ"ס 349/2024</a> · אוקטובר 2024</div>
+      </div>
+
+      <div class="card">
+        <h2>מספר סטודנטים במוסדות העיצוב</h2>
+        <div class="card-sub">לפי דיווחים רשמיים ומקורות מוסדיים</div>
+        <table>
+          <thead><tr><th>מוסד</th><th>סטודנטים סך-הכל</th><th>מתוכם בלימודי חוץ</th></tr></thead>
+          <tbody>
+            <tr><td>HIT (חולון) <span class="badge muted">תשפ"א</span></td><td class="num">~4,500</td><td>—</td></tr>
+            <tr><td>סמינר הקיבוצים</td><td class="num">3,212</td><td>—</td></tr>
+            <tr><td>שנקר</td><td class="num">2,934</td><td class="num"><strong style="color:var(--bad);">1,200+</strong></td></tr>
+            <tr style="background: rgba(245,197,66,0.08);"><td><strong>בצלאל</strong></td><td class="num"><strong>2,500</strong> (2,069+276)</td><td>◉ פנימי</td></tr>
+            <tr><td>ויצו חיפה <span class="badge warn">התמזגה ל-אונ' חיפה 6/24</span></td><td class="num">~700</td><td>—</td></tr>
+          </tbody>
+        </table>
+        <div class="source-line">
+          מקורות: <a href="https://he.wikipedia.org/wiki/בצלאל_אקדמיה_לאמנות_ועיצוב_ירושלים" target="_blank">בצלאל</a> ·
+          <a href="https://he.wikipedia.org/wiki/שנקר_(מכללה)" target="_blank">שנקר</a> ·
+          <a href="https://che.org.il/הסתיים-תהליך-מיזוג-המרכז-האקדמי-לעיצוב/" target="_blank">מל"ג — מיזוג ויצו</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 18px;">
+      <h2>שינוי תחרותי מהותי — מיזוג ויצו חיפה (יוני 2024)</h2>
+      <div class="card-sub">החלטת מל"ג ששינתה את שדה התחרות</div>
+      <p style="font-size:13px; line-height:1.7; margin-top:10px;">
+        ב-18 ביוני 2024 הסתיים תהליך מיזוג של המרכז האקדמי ויצו חיפה לתוך אוניברסיטת חיפה. ויצו חיפה הפכה ל"<strong>בית הספר לעיצוב</strong>" של אונ' חיפה.
+        <strong style="color:var(--accent);">המשמעות:</strong> לראשונה תוכנית עיצוב במסגרת אוניברסיטה מחקרית, עם תקצוב ות"ת ישיר וצפי להכפלת מספר הסטודנטים בעיצוב.
+        זהו שחקן חדש ושונה — ייתכן ובאופק יציעו גם לימודי חוץ באקדמיזציה משופרת.
+      </p>
+      <div class="source-line">מקור: <a href="https://che.org.il/הסתיים-תהליך-מיזוג-המרכז-האקדמי-לעיצוב/" target="_blank">המועצה להשכלה גבוהה</a></div>
+    </div>
+
+    <div class="card" style="margin-top: 18px;">
+      <h2>רגולציה — מי מפקח על לימודי חוץ?</h2>
+      <div class="card-sub">חשוב להכיר — מל"ג / ות"ת אינן מפקחות פיקוח ישיר</div>
+      <ul class="tight">
+        <li><span class="lead"><strong>המוסד עצמו</strong> — אוטונומיה תקצובית עצמאית, ללא הכרה אקדמית בתואר</span></li>
+        <li><span class="lead"><strong>משרד החינוך</strong> — הוועדה לאישור קורסים לגמול השתלמות (חשוב לקהל המורים)</span></li>
+        <li><span class="lead"><strong>משרד העבודה / זרוע העבודה</strong> — סבסוד הכשרות מקצועיות, קופונים, קרן ידע</span></li>
+        <li><span class="lead"><strong>המועצה להנדסאים וטכנאים</strong> — לימודי הנדסאי בלבד</span></li>
+      </ul>
+      <div class="source-line">משמעות: בצלאל יכולה להוסיף קורסים <strong style="color:var(--good);">ללא צורך באישור מל"ג</strong>. זה יתרון תפעולי מהותי.</div>
+    </div>
+  </section>
+
+  <!-- ============ MATRIX ============ -->
+  <section class="tab-panel" id="matrix">
+    <h2 class="section-title">מטריצת תחומים × מוסדות (לימודי חוץ)</h2>
+    <p class="section-sub">היכן כל מוסד חזק, חלש או נעדר — בתוך יחידת לימודי החוץ שלו בלבד.</p>
+
+    <div class="card matrix-wrapper">
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th>תחום</th>
+            <th>בצלאל</th>
+            <th>שנקר</th>
+            <th>HIT</th>
+            <th>ויצו (אונ' חיפה)</th>
+            <th>מוסררה</th>
+            <th>מנשר</th>
+            <th>ספיר</th>
+            <th>פרטיים</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>עיצוב גרפי / מותג</td><td><span class="cell c-empty">חסר</span></td><td><span class="cell c-mid">●</span></td><td><span class="cell c-strong">●●●</span></td><td><span class="cell c-strong">●●</span></td><td><span class="cell c-mid">●</span></td><td><span class="cell c-strong">●●</span></td><td><span class="cell c-strong">●●</span></td><td><span class="cell c-strong">●●●</span></td></tr>
+          <tr><td>UX / UI / Product</td><td><span class="cell c-weak">●</span></td><td><span class="cell c-mid">●</span></td><td><span class="cell c-strong">●●●</span></td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td><span class="cell c-strong">●●●</span></td></tr>
+          <tr><td>עיצוב פנים</td><td><span class="cell c-strong">●●●</span></td><td><span class="cell c-strong">●●</span></td><td><span class="cell c-strong">●●</span></td><td><span class="cell c-strong">●●</span></td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td><span class="cell c-mid">●●</span></td></tr>
+          <tr><td>צילום</td><td><span class="cell c-empty">חסר</span></td><td class="c-na">—</td><td class="c-na">—</td><td><span class="cell c-strong">●●</span></td><td><span class="cell c-strong">●●●</span></td><td><span class="cell c-strong">●●</span></td><td><span class="cell c-mid">●</span></td><td><span class="cell c-strong">●●●</span></td></tr>
+          <tr><td>צורפות / תכשיטים</td><td class="c-na">—</td><td><span class="cell c-mid">●</span></td><td class="c-na">—</td><td><span class="cell c-strong">●●●</span></td><td class="c-na">—</td><td class="c-na">—</td><td><span class="cell c-mid">●</span></td><td><span class="cell c-mid">●●</span></td></tr>
+          <tr><td>קרמיקה</td><td><span class="cell c-strong">תעודה</span></td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td><span class="cell c-mid">●</span></td><td><span class="cell c-mid">●●</span></td></tr>
+          <tr><td>אנימציה / מוטיון</td><td><span class="cell c-mid">תעודה</span></td><td><span class="cell c-strong">●● עם IAC</span></td><td><span class="cell c-mid">XR</span></td><td class="c-na">—</td><td class="c-na">—</td><td><span class="cell c-strong">●●</span></td><td class="c-na">—</td><td><span class="cell c-strong">●●●</span></td></tr>
+          <tr><td>אילוסטרציה</td><td><span class="cell c-weak">●</span></td><td><span class="cell c-mid">●</span></td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td><span class="cell c-mid">●</span></td><td><span class="cell c-mid">●</span></td><td><span class="cell c-mid">●●</span></td></tr>
+          <tr><td>ציור ורישום</td><td><span class="cell c-strong">●●● ~21</span></td><td><span class="cell c-mid">●</span></td><td class="c-na">—</td><td><span class="cell c-mid">●</span></td><td class="c-na">—</td><td><span class="cell c-mid">●</span></td><td><span class="cell c-mid">●</span></td><td class="c-na">—</td></tr>
+          <tr><td>פיסול</td><td><span class="cell c-mid">●</span></td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td><span class="cell c-mid">●</span></td><td><span class="cell c-mid">●</span></td><td class="c-na">—</td></tr>
+          <tr><td>AI יוצר</td><td><span class="cell c-strong">●●● 6 קורסים</span></td><td><span class="cell c-strong">●● Fashion AI</span></td><td><span class="cell c-strong">●● GenAI</span></td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td><span class="cell c-strong">●●● HackerU</span></td></tr>
+          <tr><td>אופנה</td><td><span class="cell c-weak">●</span></td><td><span class="cell c-strong">●●●</span></td><td class="c-na">—</td><td><span class="cell c-strong">●●</span></td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td><span class="cell c-mid">●●</span></td></tr>
+          <tr><td>אוצרות / מוזיאולוגיה</td><td class="c-na">—</td><td><span class="cell c-strong">●●● 13ח</span></td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td></tr>
+          <tr><td>פוטותרפיה</td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td><span class="cell c-strong">●●● בלעדי</span></td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td></tr>
+          <tr><td>נוער (12–17)</td><td><span class="cell c-empty">חסר</span></td><td><span class="cell c-mid">●</span></td><td><span class="cell c-strong">●●●</span></td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td></tr>
+          <tr><td>תכניות באנגלית</td><td><span class="cell c-empty">חסר</span></td><td><span class="cell c-weak">●</span></td><td><span class="cell c-weak">●</span></td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td></tr>
+          <tr><td>B2B / Corporate</td><td><span class="cell c-empty">חסר</span></td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td></tr>
+          <tr><td>גמול השתלמות / תרפיה</td><td><span class="cell c-strong">●● 200/300</span></td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td class="c-na">—</td><td><span class="cell c-strong">●●● אמן מנחה</span></td><td class="c-na">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ OPPORTUNITIES (RERANKED) ============ -->
+  <section class="tab-panel" id="opportunities">
+    <h2 class="section-title">מנופי רווח — מדורגים לפי נתוני אמת</h2>
+    <p class="section-sub">דירוג חדש המבוסס על נתוני שוק העבודה, תנועה, ומאומת מהאתר. כל מנוף מלווה בעדויות (Evidence) של נתוני אמת מאומתים.</p>
+
+    <div class="grid g-2">
+      <div class="opp-card">
+        <div class="rank">1</div>
+        <h3>הרחבת קטגוריית AI יצירתי</h3>
+        <p>הקטגוריה הצומחת ביותר בכל ממדי הביקוש. בצלאל כבר השיקה 6 קורסים ו-3 מהם מלאים — צריך להעמיק, לבנות מסלול תעודה, לפתוח תכניות B2B.</p>
+        <div class="evidence-row">
+          <strong>עדויות:</strong> 2,060 משרות AI ב-AllJobs · 62 AI Designer + 14 Prompt Engineer ב-LinkedIn · HackerU "קורס AI" כמילת מפתח אורגנית #1 · 3/6 קורסי AI של בצלאל מסומנים מלא
+        </div>
+      </div>
+
+      <div class="opp-card">
+        <div class="rank">2</div>
+        <h3>השקת תעודה ב-Product Design</h3>
+        <p>ה-637 משרות Product Designer הם הקטגוריה הגדולה ביותר בלינקדאין. בצלאל מציעה כעת רק UX/UI יחיד — צריך מסלול תעודה ארוך ב-Product Design עם דגש על AI.</p>
+        <div class="evidence-row">
+          <strong>עדויות:</strong> 637 משרות LinkedIn (הקטגוריה הגדולה ביותר) · 50% במרכז · חברות מובילות: Cyera, Connecteam, Houzz, Rapyd · בצלאל מציעה רק קורס UX אחד
+        </div>
+      </div>
+
+      <div class="opp-card">
+        <div class="rank">3</div>
+        <h3>קטגוריית עיצוב גרפי / מותג</h3>
+        <p>140 משרות LinkedIn + 21 ב-AllJobs. בצלאל אינה נוכחת בכלל בקטגוריה — ביחס לזהות בצלאל זה מפתיע. תחום שמתחרים מובילים בו (HIT, JB, Netcraft).</p>
+        <div class="evidence-row">
+          <strong>עדויות:</strong> 140 LinkedIn · 0 קורסים בקטלוג BE Bezalel · HIT עם תעודה 372 ש"א · John Bryce עם מסלול גרפי
+        </div>
+      </div>
+
+      <div class="opp-card warn">
+        <div class="rank">4</div>
+        <h3>תכניות נוער ופרה-מכינה</h3>
+        <p>אזור ריק לחלוטין בבצלאל. HIT עם תיק עמוק (Sycamore Robotics). מייצר משפך עתידי + הכנסות מקייטנות.</p>
+        <div class="evidence-row">
+          <strong>עדויות:</strong> 0 בבצלאל · HIT עם 5+ תכניות נוער · אין סיגנל ביקוש מאומת מ-LinkedIn (קהל לא רלוונטי שם) · דורש סקר ידני
+        </div>
+      </div>
+
+      <div class="opp-card warn">
+        <div class="rank">5</div>
+        <h3>B2B / Corporate Workshops</h3>
+        <p>אף מתחרה לא מפרסם הצעת B2B חשופה. סדנאות AI לצוותי שיווק וקריאייטיב, ימי עיצוב לחברות. מותג בצלאל = יתרון מובהק.</p>
+        <div class="evidence-row">
+          <strong>עדויות:</strong> 2,060 משרות AI מצביע על חברות שצריכות הכשרה · 0 הצעות B2B חשופות אצל מתחרים · ניתן לאמת רק אחרי הרצת תהליך מכירה
+        </div>
+      </div>
+
+      <div class="opp-card">
+        <div class="rank">6</div>
+        <h3>חשיפת מחירים והקמת משפך דיגיטלי</h3>
+        <p>תנועה ל-be.bezalel.ac.il צומחת 21.6% MoM, אבל ההמרה תקועה בערוץ הטלפוני (אין מחיר באתר). שינוי מדיניות = הכפלת ROI מיידית.</p>
+        <div class="evidence-row">
+          <strong>עדויות:</strong> 19.8K ביקורים · 3:16 דק' באתר (הזמן הארוך ביותר במגזר) · 0 מחירים מפורסמים · 0 קורסי דגל חושפים מחיר
+        </div>
+      </div>
+
+      <div class="opp-card warn">
+        <div class="rank">7</div>
+        <h3>מודל מנוי / בנדלים / מסלול אמן</h3>
+        <p>13/43 קורסים מלאים — קהל קיים שחוזר. חבילת ציור-רישום-פיסול, מנוי סטודיו פתוח, הנחת אלומני.</p>
+        <div class="evidence-row">
+          <strong>עדויות:</strong> 21 קורסי ציור פעילים · 7 מהם מלאים · LTV דורש נתוני CRM פנימיים <span class="src src-internal">◉</span>
+        </div>
+      </div>
+
+      <div class="opp-card bad">
+        <div class="rank">✗</div>
+        <h3>אופנה — לא להיכנס נוסף</h3>
+        <p>שוק עבודה קרוס: 5 משרות בלבד. שנקר נופלת -49% MoM. בצלאל יש כיום קורס תפירה בודד — להשאיר זאת ולא להרחיב.</p>
+        <div class="evidence-row">
+          <strong>עדויות:</strong> 5 משרות LinkedIn (הנמוך ביותר) · שנקר -49.04% תנועה · המתחרה ההיסטורי בקטגוריה במשבר
+        </div>
+      </div>
+
+      <div class="opp-card bad">
+        <div class="rank">✗</div>
+        <h3>צילום מקצועי — מתון, לא קטר</h3>
+        <p>שוק העבודה המקצועי קטן (17 משרות, 12 צילום שיניים). אבל גליץ צומח +7.7% — שוק חובבים קיים. אם להיכנס — קורסי פנאי, לא תעודה מקצועית.</p>
+        <div class="evidence-row">
+          <strong>עדויות:</strong> 17 LinkedIn · 14 AllJobs (12 צילום שיניים) · גליץ +7.74% (חובבים) · מוסררה -55% (גם הם נופלים)
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ THREATS ============ -->
+  <section class="tab-panel" id="threats">
+    <h2 class="section-title">איומים מאומתים — מי לוקח לבצלאל פרוסה</h2>
+    <p class="section-sub">דירוג מבוסס על נתוני תנועה ומגמות. שני שינויים מהותיים מ-v1: HackerU עלה למקום #1 (היחיד שצומח דו-ספרתית), שנקר ירד (במשבר תנועה -49%).</p>
+
+    <div class="grid g-2">
+      <div class="card">
+        <div class="rank" style="display:inline-block; width:32px; height:32px; line-height:32px; text-align:center; background:var(--bad); color:#0b0d12; border-radius:50%; font-weight:900; font-family:'Frank Ruhl Libre',serif;">1</div>
+        <h2 style="display:inline-block; margin-right:10px;">HackerU</h2>
+        <div class="card-sub">איום אקטיבי הכי דחוף · מתחזק במהירות</div>
+        <table style="margin-top:10px;">
+          <tbody>
+            <tr><td>תנועה חודשית</td><td class="num pos">64.3K (+26.5%)</td></tr>
+            <tr><td>חלק paid</td><td class="num">37%</td></tr>
+            <tr><td>מילת מפתח אורגנית #1</td><td>"קורס AI"</td></tr>
+            <tr><td>מסלולים רלוונטיים</td><td>UX/UI · AI · עיצוב גרפי</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="rank" style="display:inline-block; width:32px; height:32px; line-height:32px; text-align:center; background:var(--warn); color:#0b0d12; border-radius:50%; font-weight:900; font-family:'Frank Ruhl Libre',serif;">2</div>
+        <h2 style="display:inline-block; margin-right:10px;">HIT</h2>
+        <div class="card-sub">המוסד הגדול ביותר בתנועה — 14× בצלאל לימודי חוץ</div>
+        <table style="margin-top:10px;">
+          <tbody>
+            <tr><td>תנועה חודשית</td><td class="num neg">278.7K (-19.2%)</td></tr>
+            <tr><td>סטודנטים סך הכל</td><td class="num">~4,500 (תשפ"א)</td></tr>
+            <tr><td>איומים ייחודיים</td><td>נוער · עיצוב מוצר · תקשורת חזותית</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="rank" style="display:inline-block; width:32px; height:32px; line-height:32px; text-align:center; background:var(--info); color:#0b0d12; border-radius:50%; font-weight:900; font-family:'Frank Ruhl Libre',serif;">3</div>
+        <h2 style="display:inline-block; margin-right:10px;">שנקר</h2>
+        <div class="card-sub">מודל המוצרי הקרוב ביותר · במשבר תנועה</div>
+        <table style="margin-top:10px;">
+          <tbody>
+            <tr><td>תנועה חודשית</td><td class="num neg">58K (-49.0%)</td></tr>
+            <tr><td>סטודנטים בלימודי חוץ</td><td class="num"><strong>1,200+</strong></td></tr>
+            <tr><td>חוזק ייחודי</td><td>אופנה · אוצרות · Fashion AI</td></tr>
+            <tr><td>הזדמנות תזמון</td><td><span class="badge good">חלון לעקוף</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="rank" style="display:inline-block; width:32px; height:32px; line-height:32px; text-align:center; background:var(--bad); color:#0b0d12; border-radius:50%; font-weight:900; font-family:'Frank Ruhl Libre',serif;">4</div>
+        <h2 style="display:inline-block; margin-right:10px;">John Bryce</h2>
+        <div class="card-sub">תקציב שיווק עצום · מותג ענק</div>
+        <table style="margin-top:10px;">
+          <tbody>
+            <tr><td>תנועה חודשית</td><td class="num neg">29.2K (-11.5%)</td></tr>
+            <tr><td>איומים</td><td>UX/UI · AI Product · גרפי</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="rank" style="display:inline-block; width:32px; height:32px; line-height:32px; text-align:center; background:var(--warn); color:#0b0d12; border-radius:50%; font-weight:900; font-family:'Frank Ruhl Libre',serif;">5</div>
+        <h2 style="display:inline-block; margin-right:10px;">ויצו (אונ' חיפה)</h2>
+        <div class="card-sub">שינוי דרמטי — התמזגה ב-יוני 2024</div>
+        <table style="margin-top:10px;">
+          <tbody>
+            <tr><td>סטודנטים בעבר</td><td class="num">~700</td></tr>
+            <tr><td>צפי</td><td>הכפלה (אונ' מחקרית)</td></tr>
+            <tr><td>איומים בצפון</td><td>צורפות · עיצוב פנים</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="rank" style="display:inline-block; width:32px; height:32px; line-height:32px; text-align:center; background:var(--good); color:#0b0d12; border-radius:50%; font-weight:900; font-family:'Frank Ruhl Libre',serif;">6</div>
+        <h2 style="display:inline-block; margin-right:10px;">גליץ (צילום)</h2>
+        <div class="card-sub">היחיד שצומח קלות בקטגוריית פנאי</div>
+        <table style="margin-top:10px;">
+          <tbody>
+            <tr><td>תנועה חודשית</td><td class="num pos">3.3K (+7.7%)</td></tr>
+            <tr><td>קהל</td><td>חובבים — לא תעסוקתי</td></tr>
+            <tr><td>איום על בצלאל</td><td><span class="badge muted">בינוני — לא מתחרה ישיר</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="tab-panel" id="sources">
+    <h2 class="section-title">מקורות אמת ופערי נתונים</h2>
+    <p class="section-sub">שקיפות מלאה: מאיפה כל נתון בדשבורד הזה. גם רשימה ברורה של מה לא הצלחנו לאמת.</p>
+
+    <div class="card">
+      <h2>מקורות מאומתים — נתונים בדשבורד</h2>
+      <div class="card-sub">כל URL נבדק ב-25.04.2026</div>
+      <table>
+        <thead><tr><th>קטגוריה</th><th>מקור</th><th>נתונים שנשלפו</th><th>סטטוס</th></tr></thead>
+        <tbody>
+          <tr><td>קטלוג בצלאל</td><td><a href="https://be.bezalel.ac.il/" target="_blank">be.bezalel.ac.il</a></td><td>43 קורסים, מועדים, מיקומים, סטטוס</td><td><span class="src src-verified">✓ מאומת</span></td></tr>
+          <tr><td>תנועה לאתרים</td><td><a href="https://www.similarweb.com" target="_blank">Similarweb</a></td><td>ביקורים חודשיים, MoM, source mix</td><td><span class="src src-verified">✓ מאומת</span></td></tr>
+          <tr><td>משרות פתוחות</td><td><a href="https://il.linkedin.com/jobs" target="_blank">LinkedIn IL</a></td><td>13 קטגוריות עיצוב/אומנות</td><td><span class="src src-verified">✓ מאומת</span></td></tr>
+          <tr><td>משרות (משלים)</td><td><a href="https://www.alljobs.co.il" target="_blank">AllJobs</a></td><td>UX, AI, מעצב פנים, motion</td><td><span class="src src-verified">✓ מאומת</span></td></tr>
+          <tr><td>משרות (משלים)</td><td><a href="https://www.glassdoor.com" target="_blank">Glassdoor IL</a></td><td>UX/UI, Motion</td><td><span class="src src-verified">✓ מאומת</span></td></tr>
+          <tr><td>סטודנטים בישראל</td><td><a href="https://www.cbs.gov.il/he/mediarelease/DocLib/2024/349/06_24_349b.pdf" target="_blank">למ"ס 349/2024</a></td><td>346,300 סטודנטים, +1.2%, 57 מוסדות</td><td><span class="src src-verified">✓ מאומת</span></td></tr>
+          <tr><td>מיזוג ויצו</td><td><a href="https://che.org.il/הסתיים-תהליך-מיזוג-המרכז-האקדמי-לעיצוב/" target="_blank">מל"ג</a></td><td>החלטת מיזוג יוני 2024</td><td><span class="src src-verified">✓ מאומת</span></td></tr>
+          <tr><td>מספר סטודנטים מתחרים</td><td>ויקיפדיה (מסתמך על מל"ג והמוסדות)</td><td>בצלאל 2,500 · שנקר 2,934 · HIT 4,500</td><td><span class="src src-partial">◐ אומת חלקית</span></td></tr>
+          <tr><td>שנקר 1,200+ בלימודי חוץ</td><td><a href="https://ext.shenkar.ac.il/" target="_blank">ext.shenkar.ac.il</a></td><td>היקף סטודנטים</td><td><span class="src src-verified">✓ מאומת</span></td></tr>
+          <tr><td>גמול השתלמות</td><td><a href="https://edu.gov.il/sites/international-relations/remuneration/Pages/gmul.aspx" target="_blank">משרד החינוך</a></td><td>רגולציה, מוסדות מאושרים</td><td><span class="src src-verified">✓ מאומת</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top: 18px;">
+      <h2>פערי נתונים — מה לא הצלחנו לאמת</h2>
+      <div class="card-sub">רשימה של נתונים חיוניים שלא נגישים פומבית, ומה לעשות כדי להשיג אותם</div>
+      <table>
+        <thead><tr><th>נתון חסר</th><th>סיבה</th><th>פעולה נדרשת</th></tr></thead>
+        <tbody>
+          <tr><td>מחירי קורסי בצלאל</td><td>לא חשופים באתר</td><td><span class="src src-internal">◉ נתון פנימי</span></td></tr>
+          <tr><td>מחירי מתחרים</td><td>לא חשופים באתרים</td><td><span class="src src-partial">◐ Mystery shopping</span></td></tr>
+          <tr><td>היקף סטודנטים בלימודי חוץ של בצלאל</td><td>לא מפורסם</td><td><span class="src src-internal">◉ נתון פנימי</span></td></tr>
+          <tr><td>Google Trends — Interest Score</td><td>JS rendering, 429</td><td><span class="src src-partial">◐ איסוף ידני</span></td></tr>
+          <tr><td>Facebook Ad Library</td><td>SPA דורש דפדפן</td><td><span class="src src-partial">◐ איסוף ידני (ראה לשונית "איסוף ידני")</span></td></tr>
+          <tr><td>Google Ads Transparency</td><td>SPA דורש דפדפן</td><td><span class="src src-partial">◐ איסוף ידני</span></td></tr>
+          <tr><td>שכר ממוצע בוגרי עיצוב</td><td>למ"ס לא מפלח</td><td><span class="src src-partial">◐ הזמנת נתונים מותאמים מלמ"ס</span></td></tr>
+          <tr><td>תקציב מתחרים (ות"ת)</td><td>403 Forbidden ב-PDFs</td><td><span class="src src-partial">◐ הורדה ידנית</span></td></tr>
+          <tr><td>ext.shenkar.ac.il / ani-mator תנועה</td><td>Similarweb rate limit</td><td><span class="src src-partial">◐ ניסיון מאוחר יותר</span></td></tr>
+          <tr><td>נתוני CRM / GA4 של בצלאל</td><td>לא בידינו</td><td><span class="src src-internal">◉ ממתין לגישה פנימית</span></td></tr>
+          <tr><td>NPS / שביעות רצון בוגרים</td><td>לא נגיש פומבי</td><td><span class="src src-internal">◉ ממתין לסקרים פנימיים</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ MANUAL COLLECTION ============ -->
+  <section class="tab-panel" id="manual">
+    <h2 class="section-title">איסוף ידני נדרש — תבנית עבודה</h2>
+    <p class="section-sub">חלק מהנתונים החיוניים אינם זמינים לסוכני AI ודורשים איסוף ידני. הינה רשימה של מה לאסוף, איפה, ובאיזה פורמט. הזמן המוערך לכל המשימות: <strong style="color:var(--accent);">3-5 שעות עבודה אדם</strong>.</p>
+
+    <div class="card" style="margin-bottom: 18px;">
+      <h2>משימה 1: Facebook Ad Library — סקירת מתחרים</h2>
+      <div class="card-sub">זמן מוערך: 45 דקות · מטרה: לראות מה מתחרים מפרסמים בכסף עכשיו</div>
+      <p style="font-size:13px; color:var(--muted); margin-bottom: 12px;">
+        עבור לכל קישור בטבלה, רשום: כמות מודעות פעילות, אילו תכניות מקודמות, דוגמת טקסט מודעה אחת, תאריך התחלה של המודעה הקדומה ביותר, פלטפורמות (FB/IG/Messenger).
+      </p>
+      <table>
+        <thead><tr><th>מוסד</th><th>קישור חיפוש</th></tr></thead>
+        <tbody>
+          <tr><td>בצלאל / BE Bezalel</td><td><a href="https://www.facebook.com/ads/library/?country=IL&q=בצלאל" target="_blank">פתח חיפוש ↗</a></td></tr>
+          <tr><td>שנקר</td><td><a href="https://www.facebook.com/ads/library/?country=IL&q=שנקר" target="_blank">פתח חיפוש ↗</a></td></tr>
+          <tr><td>HIT</td><td><a href="https://www.facebook.com/ads/library/?country=IL&q=HIT" target="_blank">פתח חיפוש ↗</a></td></tr>
+          <tr><td>ויצו / WIZO</td><td><a href="https://www.facebook.com/ads/library/?country=IL&q=ויצו" target="_blank">פתח חיפוש ↗</a></td></tr>
+          <tr><td>מנשר</td><td><a href="https://www.facebook.com/ads/library/?country=IL&q=מנשר" target="_blank">פתח חיפוש ↗</a></td></tr>
+          <tr><td>מוסררה</td><td><a href="https://www.facebook.com/ads/library/?country=IL&q=מוסררה" target="_blank">פתח חיפוש ↗</a></td></tr>
+          <tr><td>ספיר</td><td><a href="https://www.facebook.com/ads/library/?country=IL&q=ספיר" target="_blank">פתח חיפוש ↗</a></td></tr>
+          <tr><td>סמינר הקיבוצים</td><td><a href="https://www.facebook.com/ads/library/?country=IL&q=סמינר הקיבוצים" target="_blank">פתח חיפוש ↗</a></td></tr>
+          <tr><td>John Bryce</td><td><a href="https://www.facebook.com/ads/library/?country=IL&q=John%20Bryce" target="_blank">פתח חיפוש ↗</a></td></tr>
+          <tr><td>HackerU</td><td><a href="https://www.facebook.com/ads/library/?country=IL&q=HackerU" target="_blank">פתח חיפוש ↗</a></td></tr>
+          <tr><td>Netcraft Academy</td><td><a href="https://www.facebook.com/ads/library/?country=IL&q=Netcraft" target="_blank">פתח חיפוש ↗</a></td></tr>
+          <tr><td>גליץ</td><td><a href="https://www.facebook.com/ads/library/?country=IL&q=גליץ" target="_blank">פתח חיפוש ↗</a></td></tr>
+          <tr><td>קמרה אובסקורה</td><td><a href="https://www.facebook.com/ads/library/?country=IL&q=קמרה" target="_blank">פתח חיפוש ↗</a></td></tr>
+          <tr><td>IAC / אנימטור</td><td><a href="https://www.facebook.com/ads/library/?country=IL&q=animator" target="_blank">פתח חיפוש ↗</a></td></tr>
+          <tr><td>בלינק</td><td><a href="https://www.facebook.com/ads/library/?country=IL&q=בלינק" target="_blank">פתח חיפוש ↗</a></td></tr>
+          <tr><td>6B Studio</td><td><a href="https://www.facebook.com/ads/library/?country=IL&q=6B" target="_blank">פתח חיפוש ↗</a></td></tr>
+          <tr><td>סטודיו יוני</td><td><a href="https://www.facebook.com/ads/library/?country=IL&q=סטודיו יוני" target="_blank">פתח חיפוש ↗</a></td></tr>
+        </tbody>
+      </table>
+      <div class="source-line">אחרי איסוף — שלח אליי את הנתונים, אבצע ניתוח אסטרטגי וניתוח מסרים מוביל.</div>
+    </div>
+
+    <div class="card" style="margin-bottom: 18px;">
+      <h2>משימה 2: Google Trends — מגמות חיפוש</h2>
+      <div class="card-sub">זמן מוערך: 30 דקות · מטרה: לאמת אילו תחומים צומחים בחיפוש</div>
+      <p style="font-size:13px; color:var(--muted); margin-bottom: 12px;">
+        פתח <a href="https://trends.google.com/trends/?geo=IL&hl=he-IL" target="_blank" style="color:var(--info);">trends.google.com</a> ובדוק כל מונח. רשום: Interest Score היום, מגמת 5 שנים, אזור גיאוגרפי דומיננטי, Related Queries (rising):
+      </p>
+      <ul class="tight">
+        <li><span class="lead">קורס AI</span><span class="badge muted">צפי: גבוה ועולה (לפי HackerU)</span></li>
+        <li><span class="lead">קורס UX</span><span class="badge muted">לאמת</span></li>
+        <li><span class="lead">קורס עיצוב גרפי</span><span class="badge muted">לאמת</span></li>
+        <li><span class="lead">קורס צילום</span><span class="badge muted">לאמת</span></li>
+        <li><span class="lead">לימודי עיצוב פנים</span><span class="badge muted">לאמת</span></li>
+        <li><span class="lead">קורס אנימציה / מוטיון</span><span class="badge muted">לאמת</span></li>
+        <li><span class="lead">קורס סטיילינג</span><span class="badge muted">לאמת</span></li>
+        <li><span class="lead">לימודי תעודה</span><span class="badge muted">לאמת</span></li>
+      </ul>
+    </div>
+
+    <div class="card" style="margin-bottom: 18px;">
+      <h2>משימה 3: Mystery Shopping — מחירי מתחרים</h2>
+      <div class="card-sub">זמן מוערך: 1.5-2 שעות · מטרה: לקבל מחירים אמיתיים של מתחרים</div>
+      <p style="font-size:13px; color:var(--muted); margin-bottom: 12px;">
+        התקשר/שלח טופס יצירת קשר לכל אחד מ-7 המתחרים העיקריים בקטגוריות הבאות (תעודה בעיצוב פנים, UX/UI, גרפי, AI). תרשום: שכ"ל מלא, אופציות תשלום, הנחות מתעתעות, התנהגות נציג.
+      </p>
+      <table>
+        <thead><tr><th>מוסד</th><th>תכנית בעדיפות</th><th>איך לפנות</th></tr></thead>
+        <tbody>
+          <tr><td>שנקר ext</td><td>עיצוב פנים בצפון · קורס AI</td><td><a href="https://ext.shenkar.ac.il/" target="_blank">ext.shenkar.ac.il</a></td></tr>
+          <tr><td>HIT</td><td>עיצוב פנים · UX/UI · גרפי</td><td>טל *6441</td></tr>
+          <tr><td>HackerU</td><td>UX/UI · AI</td><td><a href="https://www.hackeru.co.il" target="_blank">hackeru.co.il</a></td></tr>
+          <tr><td>John Bryce</td><td>גרפי · UX/UI · AI</td><td><a href="https://www.johnbryce.co.il" target="_blank">johnbryce.co.il</a></td></tr>
+          <tr><td>Netcraft</td><td>UX/UI · עיצוב מוצר</td><td><a href="https://netcraftacademy.co.il" target="_blank">netcraftacademy.co.il</a></td></tr>
+          <tr><td>גליץ</td><td>צילום מקצועי</td><td><a href="https://galitz.co.il" target="_blank">galitz.co.il</a></td></tr>
+          <tr><td>בלינק</td><td>מוטיון מאסטר</td><td><a href="https://schoolblink.com" target="_blank">schoolblink.com</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="action-bar">
+      <div>
+        <h2>מה הצעד הבא לאחר איסוף ידני?</h2>
+        <p>
+          ברגע שתחזור עם נתוני Ad Library, Google Trends ומחירי mystery shopping — אבנה את <strong>גרסה 3 של הדשבורד</strong> שתכלול: מטריצת מסרים שיווקיים, השוואת תמחור, ופרטיזציה של תכנית עבודה ל-90 ימים הקרובים. כשגישה לנתוני CRM/GA4 פנימיים תהיה זמינה, נוסיף את שכבת ההמרה והרווחיות.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FUTURE OPS / MANAGEMENT (NEW) ============ -->
+  <section class="tab-panel" id="ops">
+    <h2 class="section-title">ניהול עתידי — סטודנטים, מרצים ושירות אוטומטי</h2>
+    <p class="section-sub">
+      לשונית זו מוקדשת לשלב הבא של הפרויקט: תוכנה שמנהלת את כל הממשק בין סטודנטים, מרצים והתפעול של בצלאל — עם שירות לקוחות אוטומטי. הדף הזה <strong style="color: var(--accent);">אינפורמטיבי לבצלאל</strong> — שאלון מובנה כדי שיענו, ועל בסיס התשובות אבנה את התוכנה המתאימה ביותר.
+    </p>
+
+    <div class="scope-banner" style="border-right-color: var(--info); margin-bottom: 22px;">
+      <div class="icon">◉</div>
+      <div class="body">
+        <strong>חזון התוכנה:</strong>
+        ממשק יחיד שמרכז את כל הזרימה של לימודי החוץ — הרשמה, תשלומים, לוח שיעורים, תקשורת, חומרים, נוכחות, תעודות, פניות שירות. <strong style="color: var(--info);">90% מפניות השירות נענות ע"י סוכן אוטומטי</strong>; הצוות מטפל רק בחריגים.
+      </div>
+    </div>
+
+    <!-- Vision pillars -->
+    <div class="grid g-3" style="margin-bottom: 26px;">
+      <div class="card">
+        <h2 style="color: var(--good);">① ערוץ סטודנט</h2>
+        <div class="card-sub">פורטל אישי + בוט שירות 24/7</div>
+        <ul class="tight">
+          <li><span class="lead">מצב הרשמה ותשלומים</span><span class="badge good">אוטומטי</span></li>
+          <li><span class="lead">לוח מפגשים, לינקים, מיקומים</span><span class="badge good">אוטומטי</span></li>
+          <li><span class="lead">בקשות (אישורים, השלמות, ביטולים)</span><span class="badge good">אוטומטי</span></li>
+          <li><span class="lead">תעודה / גמול השתלמות</span><span class="badge good">אוטומטי</span></li>
+          <li><span class="lead">חריגים → אדם</span><span class="badge muted">10%</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2 style="color: var(--info);">② ערוץ מרצה</h2>
+        <div class="card-sub">פורטל מרצה + צ'קליסט תפעולי</div>
+        <ul class="tight">
+          <li><span class="lead">לוח קורסים, רשימת תלמידים</span><span class="badge info">צפייה</span></li>
+          <li><span class="lead">דיווח נוכחות וחומרים</span><span class="badge info">העלאה</span></li>
+          <li><span class="lead">דוחות שעות ותשלום</span><span class="badge info">אוטומטי</span></li>
+          <li><span class="lead">פניות תפעוליות (חדר, ציוד)</span><span class="badge info">בוט</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2 style="color: var(--accent);">③ ערוץ תפעול בצלאל</h2>
+        <div class="card-sub">מסך ניהול + התראות חכמות</div>
+        <ul class="tight">
+          <li><span class="lead">תמונת מצב בזמן-אמת</span><span class="badge warn">דשבורד</span></li>
+          <li><span class="lead">חריגים שדורשים אדם</span><span class="badge warn">בלבד</span></li>
+          <li><span class="lead">דוחות KPI ותקציב</span><span class="badge warn">אוטומטי</span></li>
+          <li><span class="lead">תקשורת המונית (SMS/Email)</span><span class="badge warn">תבניות</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Questionnaire form -->
+    <h3 style="font-family:'Frank Ruhl Libre',serif; font-size:22px; margin: 32px 0 8px;">שאלון לבצלאל — 4 קטגוריות, 32 שאלות</h3>
+    <p style="color: var(--muted); font-size: 13px; margin-bottom: 22px;">
+      <strong style="color: var(--accent);">היי אלי,</strong> ענה על כל השאלות שאתה יכול. השאר ריק מה שאתה לא יודע — נחזור על זה יחד. בלחיצה על "שלח את כל התשובות" התשובות יגיעו אוטומטית למייל. אפשר גם לשמור באמצע ולחזור (הדפדפן זוכר).
+    </p>
+
+    <form action="https://formsubmit.co/spivak123@gmail.com" method="POST" id="bezalel-form" autocomplete="off">
+      <!-- formsubmit.co configuration -->
+      <input type="hidden" name="_subject" value="שאלון בצלאל — תשובות מאלי">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_template" value="table">
+      <input type="hidden" name="_autoresponse" value="היי, קיבלנו את התשובות שלך לשאלון בצלאל. תודה רבה! נחזור אליך תוך יומיים עם המשך.">
+      <input type="text" name="_honey" style="display:none">
+
+      <!-- Identity -->
+      <div class="form-meta">
+        <div class="form-question" style="margin-bottom: 0;">
+          <label for="qname">שמך המלא <span style="color: var(--bad);">*</span></label>
+          <input type="text" id="qname" name="ממלא_השאלון" class="form-input" required placeholder="אלי ...">
+        </div>
+        <div class="form-question" style="margin-bottom: 0;">
+          <label for="qrole">תפקידך בבצלאל</label>
+          <input type="text" id="qrole" name="תפקיד" class="form-input" placeholder="לדוגמה: מנהל לימודי חוץ">
+        </div>
+      </div>
+
+      <div class="grid g-2">
+        <!-- A: Existing data -->
+        <div class="card">
+          <h2 style="color: var(--good);">א. נתונים קיימים — מה כבר יש לכם?</h2>
+          <div class="card-sub">מערכות, בסיסי נתונים, פלטפורמות</div>
+
+          <div class="form-question"><label for="q1"><span class="qnum">1.</span> באיזו מערכת CRM אתם משתמשים? (Salesforce, Priority, Excel...)</label>
+            <textarea id="q1" name="א1_CRM" class="form-textarea" rows="2" placeholder="התשובה שלך..."></textarea></div>
+
+          <div class="form-question"><label for="q2"><span class="qnum">2.</span> איפה מאוחסנת רשימת הסטודנטים הפעילים והעבר?</label>
+            <textarea id="q2" name="א2_רשימת_סטודנטים" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q3"><span class="qnum">3.</span> האם יש LMS (Moodle, Canvas, Google Classroom)?</label>
+            <textarea id="q3" name="א3_LMS" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q4"><span class="qnum">4.</span> איך מתבצעים תשלומים היום? (סליקה, חשבונית, מערכת)</label>
+            <textarea id="q4" name="א4_תשלומים" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q5"><span class="qnum">5.</span> רשימת מרצים — איפה מנוהלת? כולל חוזים ושעות?</label>
+            <textarea id="q5" name="א5_מרצים" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q6"><span class="qnum">6.</span> נתוני שיווק — Google Analytics, פיקסלים, רשימות תפוצה?</label>
+            <textarea id="q6" name="א6_שיווק" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q7"><span class="qnum">7.</span> כמה רשומות פעילות יש בסך הכל (סטודנטים, מרצים, קורסים)?</label>
+            <textarea id="q7" name="א7_היקף_רשומות" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q8"><span class="qnum">8.</span> האם יש API קיים למערכות הללו או שזו ה-source-of-truth ידנית?</label>
+            <textarea id="q8" name="א8_API" class="form-textarea" rows="2"></textarea></div>
+        </div>
+
+        <!-- B: Service flows -->
+        <div class="card">
+          <h2 style="color: var(--info);">ב. תהליכי שירות לקוחות — איך זה עובד היום?</h2>
+          <div class="card-sub">מי פונה, על מה, באיזה ערוץ, וכמה זמן</div>
+
+          <div class="form-question"><label for="q9"><span class="qnum">9.</span> כמה פניות שירות בחודש מסטודנטים? (טלפון/מייל/ווטסאפ)</label>
+            <textarea id="q9" name="ב9_כמות_פניות" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q10"><span class="qnum">10.</span> מה 5 הסיבות הנפוצות ביותר לפנייה?</label>
+            <textarea id="q10" name="ב10_סיבות_פנייה" class="form-textarea" rows="3"></textarea></div>
+
+          <div class="form-question"><label for="q11"><span class="qnum">11.</span> כמה אנשי שירות מטפלים בפניות? כמה זמן ממוצע לפנייה?</label>
+            <textarea id="q11" name="ב11_כוח_אדם" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q12"><span class="qnum">12.</span> אילו פניות חוזרות על עצמן ושוות לאוטומציה מיידית?</label>
+            <textarea id="q12" name="ב12_פניות_לאוטומציה" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q13"><span class="qnum">13.</span> מה הפניות הרגישות שחייבות אדם? (משבר, סודיות, החזר)</label>
+            <textarea id="q13" name="ב13_פניות_רגישות" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q14"><span class="qnum">14.</span> מרצים — מה הם פונים בכל שבוע? מה ב-onboarding?</label>
+            <textarea id="q14" name="ב14_מרצים_פניות" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q15"><span class="qnum">15.</span> שעות פעילות שירות הלקוחות היום? יש דרישה ל-24/7?</label>
+            <textarea id="q15" name="ב15_שעות_שירות" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q16"><span class="qnum">16.</span> שפות שירות — עברית בלבד או גם אנגלית/ערבית?</label>
+            <textarea id="q16" name="ב16_שפות" class="form-textarea" rows="2"></textarea></div>
+        </div>
+
+        <!-- C: Desired services -->
+        <div class="card">
+          <h2 style="color: var(--accent);">ג. שירותים רצויים — מה התוכנה צריכה לעשות?</h2>
+          <div class="card-sub">פיצ'רים שאתם רוצים שיפעלו אוטומטית</div>
+
+          <div class="form-question"><label for="q17"><span class="qnum">17.</span> הרשמה אוטומטית מ-A עד Z (טופס → תשלום → שיבוץ)?</label>
+            <textarea id="q17" name="ג17_הרשמה_אוטומטית" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q18"><span class="qnum">18.</span> תזכורות אוטומטיות לפני מפגש (SMS/מייל)?</label>
+            <textarea id="q18" name="ג18_תזכורות" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q19"><span class="qnum">19.</span> מענה אוטומטי על "מתי המפגש הבא?", "איפה?", "איך מתחברים?"</label>
+            <textarea id="q19" name="ג19_מענה_אוטומטי" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q20"><span class="qnum">20.</span> הנפקת אישורים / תעודות בלחיצה?</label>
+            <textarea id="q20" name="ג20_אישורים" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q21"><span class="qnum">21.</span> מערכת ביטולים והחזרים בכפוף למדיניות?</label>
+            <textarea id="q21" name="ג21_ביטולים" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q22"><span class="qnum">22.</span> רישום נוכחות ע"י המרצה במכשיר?</label>
+            <textarea id="q22" name="ג22_נוכחות" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q23"><span class="qnum">23.</span> דוחות תקופתיים אוטומטיים (תפוסה, רווחיות, NPS)?</label>
+            <textarea id="q23" name="ג23_דוחות" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q24"><span class="qnum">24.</span> אינטגרציה עם לוח שנה (Google/Outlook) של סטודנטים ומרצים?</label>
+            <textarea id="q24" name="ג24_לוח_שנה" class="form-textarea" rows="2"></textarea></div>
+        </div>
+
+        <!-- D: Integration & constraints -->
+        <div class="card">
+          <h2 style="color: var(--gap);">ד. אינטגרציה ואילוצים — מה חייב לעבוד עם מה</h2>
+          <div class="card-sub">אבטחה, רגולציה, מערכות מארחות</div>
+
+          <div class="form-question"><label for="q25"><span class="qnum">25.</span> האם המערכת חייבת לחיות בענן בצלאל / על שרת מסוים?</label>
+            <textarea id="q25" name="ד25_ענן" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q26"><span class="qnum">26.</span> דרישות אבטחה / חוק הגנת הפרטיות / רגולציה אקדמית?</label>
+            <textarea id="q26" name="ד26_אבטחה" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q27"><span class="qnum">27.</span> איך מחובר השכר של המרצים? (Hilan, Michpal, אחר)</label>
+            <textarea id="q27" name="ד27_שכר" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q28"><span class="qnum">28.</span> איך עובדת הוצאת חשבונית/קבלה? (חשבשבת, רימון, Greeninvoice)</label>
+            <textarea id="q28" name="ד28_חשבוניות" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q29"><span class="qnum">29.</span> האם יש מערכת ניהול תוכן לאתר be.bezalel.ac.il (WordPress?)</label>
+            <textarea id="q29" name="ד29_CMS" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q30"><span class="qnum">30.</span> SSO — האם נדרשת התחברות מאוחדת עם בצלאל הראשי?</label>
+            <textarea id="q30" name="ד30_SSO" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q31"><span class="qnum">31.</span> תקציב משוער ואופק זמן ליישום?</label>
+            <textarea id="q31" name="ד31_תקציב" class="form-textarea" rows="2"></textarea></div>
+
+          <div class="form-question"><label for="q32"><span class="qnum">32.</span> מי הסטייקהולדרים הראשיים שיאשרו את המוצר?</label>
+            <textarea id="q32" name="ד32_סטייקהולדרים" class="form-textarea" rows="2"></textarea></div>
+        </div>
+      </div>
+
+      <!-- General comments + submit -->
+      <div class="card" style="margin-top: 18px;">
+        <div class="form-question">
+          <label for="qcomments"><strong>הערות כלליות / דברים נוספים שחשוב לציין</strong></label>
+          <textarea id="qcomments" name="הערות_כלליות" class="form-textarea" rows="4" placeholder="כל מידע נוסף שיעזור לתכנון..."></textarea>
+        </div>
+      </div>
+
+      <div class="form-submit-bar">
+        <div>
+          <h2 style="font-family:'Frank Ruhl Libre', serif; font-size: 18px; margin-bottom: 4px;">סיימתי לענות</h2>
+          <p style="color: var(--muted); font-size: 12px;">בלחיצה — התשובות נשלחות למייל באופן מיידי. אפשר לסגור ולחזור — הטקסט שמילאת נשמר בדפדפן.</p>
+        </div>
+        <button type="submit" class="btn-submit">שלח את כל התשובות ←</button>
+      </div>
+    </form>
+
+    <div class="action-bar" style="margin-top: 32px;">
+      <div>
+        <h2>הצעד הבא</h2>
+        <p>
+          תשובות ל-32 השאלות יאפשרו לי לבחור: ארכיטקטורה (monolith / microservices / no-code), ערימה טכנולוגית (Node/Python, Postgres/Mongo, ענן ספציפי), ומפת דרכים בשלבים (MVP → גרסה 1 → גרסה מלאה). <strong style="color: var(--accent);">אחרי זה, נוכל להציג לבצלאל הצעת מחיר מבוססת היקף אמיתי.</strong>
+        </p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 18px;">
+      <h2>לוז משוער (לאחר קבלת תשובות)</h2>
+      <table>
+        <thead><tr><th>שלב</th><th>תוצר</th><th>זמן משוער</th></tr></thead>
+        <tbody>
+          <tr><td>1. גילוי וניתוח</td><td>מסמך אפיון + גרסה ראשונה של ארכיטקטורה</td><td>1-2 שבועות</td></tr>
+          <tr><td>2. אב-טיפוס לבוט שירות</td><td>בוט שעונה על 5 הפניות הנפוצות ביותר</td><td>2-3 שבועות</td></tr>
+          <tr><td>3. MVP — ערוץ סטודנט</td><td>פורטל אישי + הרשמה אוטומטית</td><td>4-6 שבועות</td></tr>
+          <tr><td>4. ערוץ מרצה</td><td>פורטל מרצה + דיווחים</td><td>3-4 שבועות</td></tr>
+          <tr><td>5. ערוץ תפעול</td><td>דשבורד פנימי + התראות</td><td>3-4 שבועות</td></tr>
+          <tr><td>6. אינטגרציות מלאות</td><td>שכר, חשבוניות, SSO</td><td>2-4 שבועות</td></tr>
+        </tbody>
+      </table>
+      <div class="source-line">לוז זה אינדיקטיבי בלבד וייקבע סופית אחרי תשובות לשאלון.</div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  // Password gate
+  (function () {
+    const PASS = '123456';
+    const STORAGE_KEY = 'be_bezalel_pw_ok';
+    const gate = document.getElementById('pw-gate');
+    const input = document.getElementById('pw-input');
+    const submit = document.getElementById('pw-submit');
+    const err = document.getElementById('pw-err');
+
+    function unlock() {
+      document.body.classList.remove('locked');
+      gate.style.display = 'none';
+      try { sessionStorage.setItem(STORAGE_KEY, '1'); } catch (_) {}
+      initDashboard();
+    }
+
+    function tryUnlock() {
+      const v = (input.value || '').trim();
+      if (v === PASS) {
+        err.textContent = '';
+        unlock();
+      } else {
+        err.textContent = 'סיסמה שגויה';
+        input.value = '';
+        input.focus();
+      }
+    }
+
+    try {
+      if (sessionStorage.getItem(STORAGE_KEY) === '1') {
+        unlock();
+        return;
+      }
+    } catch (_) {}
+
+    submit.addEventListener('click', tryUnlock);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') tryUnlock();
+    });
+  })();
+
+  function initDashboard() {
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const panels = document.querySelectorAll('.tab-panel');
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabBtns.forEach(b => b.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+
+  Chart.defaults.font.family = "'Heebo', sans-serif";
+  Chart.defaults.color = '#8893a7';
+  Chart.defaults.borderColor = '#262d3a';
+
+  const palette = {
+    accent: '#f5c542', coral: '#ff7a59', good: '#34d399', warn: '#fbbf24',
+    bad: '#f87171', info: '#60a5fa', gap: '#c084fc', muted: '#64748b'
+  };
+
+  // Traffic chart
+  new Chart(document.getElementById('trafficChart'), {
+    type: 'bar',
+    data: {
+      labels: ['HIT', 'בצלאל ראשי', 'HackerU', 'שנקר', 'John Bryce', 'BE Bezalel', 'מנשר', 'גליץ', 'מוסררה'],
+      datasets: [
+        { label: 'ביקורים חודשיים (K)', data: [278.7, 77.2, 64.3, 58, 29.2, 19.8, 4.2, 3.3, 2.2],
+          backgroundColor: ['#f87171','#f5c542','#34d399','#f87171','#f87171','#34d399','#fbbf24','#34d399','#f87171'],
+          borderRadius: 6 }
+      ]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: { afterLabel: (ctx) => {
+          const mom = [-19.22, -10.34, +26.52, -49.04, -11.52, +21.58, -17.83, +7.74, -55.32];
+          return `MoM: ${mom[ctx.dataIndex]}%`;
+        }}
+      }},
+      scales: { x: { grid: { color: '#262d3a' } }, y: { grid: { display: false } } }
+    }
+  });
+
+  // Jobs chart
+  new Chart(document.getElementById('jobsChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Product Designer', 'Interior Designer', 'Illustrator', 'Stylist', 'Graphic Designer', 'AI Designer', 'Animator', 'Motion Designer', 'UI/UX', 'Photographer', 'Prompt Eng', '3D Animator', 'Fashion'],
+      datasets: [
+        { label: 'משרות פתוחות (LinkedIn IL)',
+          data: [637, 324, 219, 199, 140, 62, 49, 47, 22, 17, 14, 11, 5],
+          backgroundColor: ['#34d399','#f5c542','#60a5fa','#60a5fa','#fbbf24','#34d399','#60a5fa','#60a5fa','#60a5fa','#fbbf24','#34d399','#64748b','#f87171'],
+          borderRadius: 4 }
+      ]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { grid: { color: '#262d3a' } }, y: { grid: { display: false }, ticks: { font: { size: 11 } } } }
+    }
+  });
+
+  // Status chart - donut
+  new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['מלא', 'מקומות אחרונים', 'פתוח להרשמה', 'בקרוב / טרם נקבע'],
+      datasets: [{
+        data: [13, 6, 18, 6],
+        backgroundColor: [palette.bad, palette.warn, palette.good, palette.muted],
+        borderColor: '#14181f', borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', rtl: true, labels: { usePointStyle: true, padding: 12, boxWidth: 8 } } }
+    }
+  });
+
+  // Catalog chart
+  new Chart(document.getElementById('catalogChart'), {
+    type: 'bar',
+    data: {
+      labels: ['ציור (אמנות)', 'רישום ואיור', 'AI יוצר', 'תעודה + השלמות', 'עיצוב + UX', 'פיסול', 'הדפס/נייר', 'מכינה'],
+      datasets: [
+        { label: 'מספר קורסים', data: [12, 9, 6, 5, 5, 3, 2, 1],
+          backgroundColor: palette.accent, borderRadius: 4 }
+      ]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { grid: { color: '#262d3a' } }, y: { grid: { display: false } } }
+    }
+  });
+
+  // Demand vs Bezalel
+  new Chart(document.getElementById('demandVsBezalel'), {
+    type: 'bar',
+    data: {
+      labels: ['Product Design', 'Interior Design', 'Illustrator', 'Graphic Design', 'AI Designer', 'Motion Designer', 'UI/UX', 'Photography', 'Fashion'],
+      datasets: [
+        { label: 'משרות LinkedIn', data: [637, 324, 219, 140, 62, 47, 22, 17, 5],
+          backgroundColor: 'rgba(96,165,250,0.7)', borderRadius: 4 },
+        { label: 'נוכחות בצלאל (1-10)', data: [1, 9, 2, 0, 8, 0, 2, 0, 1],
+          backgroundColor: 'rgba(245,197,66,0.85)', borderRadius: 4, yAxisID: 'y2' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { rtl: true } },
+      scales: {
+        y: { type: 'linear', position: 'right', grid: { color: '#262d3a' }, title: { display: true, text: 'משרות', color: palette.muted } },
+        y2: { type: 'linear', position: 'left', max: 10, grid: { drawOnChartArea: false }, title: { display: true, text: 'נוכחות (1-10)', color: palette.muted } },
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+  // Form auto-save (localStorage) so Eli can close + come back
+  const form = document.getElementById('bezalel-form');
+  if (form) {
+    const STORAGE_PREFIX = 'be_bezalel_form_';
+    const fields = form.querySelectorAll('input[type="text"], textarea');
+
+    fields.forEach(f => {
+      const saved = localStorage.getItem(STORAGE_PREFIX + f.name);
+      if (saved && !f.value) f.value = saved;
+      f.addEventListener('input', () => {
+        try { localStorage.setItem(STORAGE_PREFIX + f.name, f.value); } catch (_) {}
+      });
+    });
+
+    form.addEventListener('submit', () => {
+      // Clear local copies on successful submit (after redirect)
+      setTimeout(() => {
+        fields.forEach(f => {
+          try { localStorage.removeItem(STORAGE_PREFIX + f.name); } catch (_) {}
+        });
+      }, 500);
+    });
+  }
+  } // end initDashboard
+</script>
+</body>
+</html>
